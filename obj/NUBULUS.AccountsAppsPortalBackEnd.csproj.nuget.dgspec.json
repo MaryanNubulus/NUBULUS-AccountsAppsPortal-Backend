@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS.AccountsAppsPortalBackEnd\\NUBULUS.AccountsAppsPortalBackEnd.csproj": {}
+    "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS-AccountsAppsPortal-Backend\\NUBULUS.AccountsAppsPortalBackEnd.csproj": {}
   },
   "projects": {
-    "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS.AccountsAppsPortalBackEnd\\NUBULUS.AccountsAppsPortalBackEnd.csproj": {
+    "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS-AccountsAppsPortal-Backend\\NUBULUS.AccountsAppsPortalBackEnd.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS.AccountsAppsPortalBackEnd\\NUBULUS.AccountsAppsPortalBackEnd.csproj",
+        "projectUniqueName": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS-AccountsAppsPortal-Backend\\NUBULUS.AccountsAppsPortalBackEnd.csproj",
         "projectName": "NUBULUS.AccountsAppsPortalBackEnd",
-        "projectPath": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS.AccountsAppsPortalBackEnd\\NUBULUS.AccountsAppsPortalBackEnd.csproj",
+        "projectPath": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS-AccountsAppsPortal-Backend\\NUBULUS.AccountsAppsPortalBackEnd.csproj",
         "packagesPath": "C:\\Users\\Maryan\\.nuget\\packages\\",
-        "outputPath": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS.AccountsAppsPortalBackEnd\\obj\\",
+        "outputPath": "C:\\repos\\NUBULUS-AccountsAppsPortal\\NUBULUS-AccountsAppsPortal-Backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -48,6 +48,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.20, )"
+            },
+            "Microsoft.Identity.Web": {
+              "target": "Package",
+              "version": "[3.14.1, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
