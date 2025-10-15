@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NUBULUS.AccountsAppsPortalBackEnd")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1409cdd0b7b7760e3220bbaf254a57151267c50a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f314300e8bf3fec7aa05a3c3890d2e9a79bc7595")]
 [assembly: System.Reflection.AssemblyProductAttribute("NUBULUS.AccountsAppsPortalBackEnd")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NUBULUS.AccountsAppsPortalBackEnd")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
