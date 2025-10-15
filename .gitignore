@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# Evitar subir carpetas temporales de Visual Studio y compilación
+.vs/
+obj/
