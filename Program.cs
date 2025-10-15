@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
-using NUBULUS.AccountsAppsPortalBackEnd;
+using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
+using NUBULUS.AccountsAppsPortalBackEnd.Infraestructure;
+using NUBULUS.AccountsAppsPortalBackEnd.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,10 @@ builder.Services.AddCors(options =>
     );
 });
 
+
+builder.Services.AddInfrastructure();
+builder.Services.AddApplication();
+
 var app = builder.Build();
 
 app.UseRouting();
@@ -43,13 +49,9 @@ app.MapGet("/api/v1/auth/sign-in", () =>
 
 app.MapGet("/api/v1/auth/success", (HttpContext context) =>
 {
-    User user = new(
-        Guid.NewGuid(),
-        context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value!,
-        context.User.Identities.FirstOrDefault()!.Name!
-    );
+    var user = User.Create(context.User.Identities.FirstOrDefault()!.Name!, context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value!);    
 
-    context.Response.Headers.Append("X-User-Auth", user.ToString());
+    context.Response.Headers.Append("X-User-Auth", user.EncodeBase64String());
     return Results.Redirect("http://localhost:5173/private");
 }).RequireAuthorization();
 
