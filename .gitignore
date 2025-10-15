@@ -363,6 +363,8 @@ MigrationBackup/
 FodyWeavers.xsd
 
 
-# Evitar subir carpetas temporales de Visual Studio y compilación
+# Evitar subir carpetas temporales de Visual Studio y compilacion
 .vs/
 obj/
+appsettings.json
+appsettings.Development.json
