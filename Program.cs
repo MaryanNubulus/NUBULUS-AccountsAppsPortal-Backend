@@ -38,7 +38,7 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddInfrastructure();
-builder.Services.AddApplication();
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
@@ -48,7 +48,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-// Auth Endpoints
-app.MapSignInEndpoint().MapSignOutEndpoint().MapIsValidSessionEndpoint();
+app.MapApplicationEndpoints();
 
 app.Run();

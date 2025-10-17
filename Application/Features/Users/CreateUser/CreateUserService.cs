@@ -1,5 +1,6 @@
 ﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
-
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Mappers;
 using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.CreateUser;
@@ -13,10 +14,10 @@ public class CreateUserService : ICreateUserService
         _usersCommandsRepository = usersCommandsRepository;
     }
 
-    public async Task<bool> CreateUserAsync(string email, string name)
+    public async Task<bool> CreateUserAsync(CreateUserRequest request)
     {
-        var user = User.Create(email, name);        
+        var user = UserMapper.CreateEntity(request);
 
-        return await _usersCommandsRepository.AddAsync(user);        
+        return await _usersCommandsRepository.AddAsync(user);
     }
-}   
+}

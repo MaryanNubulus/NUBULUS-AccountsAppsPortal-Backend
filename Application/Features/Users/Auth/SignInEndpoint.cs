@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.CreateUser;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.ExistUser;
 
@@ -21,7 +22,13 @@ public static class SignInEndpoint
             if (!userExists)
             {
                 var userName = context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Unknown";
-                var created = await createUserService.CreateUserAsync(userEmail, userName);
+
+                var request = new CreateUserRequest
+                {
+                    Email = userEmail,
+                    Name = userName
+                };
+                var created = await createUserService.CreateUserAsync(request);
                 if (!created)
                 {
                     return Results.StatusCode(500);
