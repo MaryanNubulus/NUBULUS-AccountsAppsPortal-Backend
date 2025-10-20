@@ -1,4 +1,3 @@
-using MongoDB.Driver.Linq;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Mappers;
@@ -16,7 +15,7 @@ public class GetUsersService : IGetUsersService
 
     public async Task<IEnumerable<UserInfoDTO>> GetUsersAsync()
     {
-        return _usersQueriesRepository.GetAll().Select(UserMapper.ToDTO).ToList();
+        return await Task.FromResult(_usersQueriesRepository.GetAll().Select(UserMapper.ToDTO).ToList());
 
     }
 }

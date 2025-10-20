@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using NUBULUS.AccountsAppsPortalBackEnd.Infraestructure;
 using NUBULUS.AccountsAppsPortalBackEnd.Application;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.Auth;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson;
