@@ -1,8 +1,7 @@
 ﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.Auth;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.GetUsers;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application;
 
@@ -13,15 +12,18 @@ public static class DI
         services.AddTransient<IUsersCommandsRepository, UsersCommandsRepository>();
         services.AddTransient<IUsersQueriesRepository, UsersQueriesRepository>();
         services.AddUserServices();
+
+        services.AddTransient<IAppsCommandsRepository, AppsCommandsRepository>();
+        services.AddTransient<IAppsQueriesRepository, AppsQueriesRepository>();
+        services.AddAppsServices();
+
         return services;
     }
 
     public static WebApplication MapApplicationEndpoints(this WebApplication app)
     {
-
-        app.MapSignInEndpoint().MapSignOutEndpoint().MapIsValidSessionEndpoint();
-
-        app.MapGetUsersEndPoint();
+        app.MapAppsEndpoints();
+        app.MapUsersEndpoints();
 
         return app;
     }

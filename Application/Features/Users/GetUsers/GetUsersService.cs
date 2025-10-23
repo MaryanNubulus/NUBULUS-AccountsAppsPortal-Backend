@@ -1,6 +1,6 @@
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Mappers;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.GetUsers;
 

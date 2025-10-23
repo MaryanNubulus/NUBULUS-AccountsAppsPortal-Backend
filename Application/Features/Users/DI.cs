@@ -1,4 +1,5 @@
-﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.CreateUser;
+﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.Auth;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.CreateUser;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.ExistUser;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.GetUsers;
 
@@ -13,5 +14,14 @@ public static class DI
         services.AddTransient<IGetUsersService, GetUsersService>();
 
         return services;
+    }
+    public static WebApplication MapUsersEndpoints(this WebApplication app)
+    {
+
+        app.MapSignInEndpoint().MapSignOutEndpoint().MapIsValidSessionEndpoint();
+
+        app.MapGetUsersEndPoint();
+
+        return app;
     }
 }

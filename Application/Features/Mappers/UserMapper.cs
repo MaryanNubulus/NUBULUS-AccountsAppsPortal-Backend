@@ -1,7 +1,7 @@
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Mappers
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers
 {
     public static class UserMapper
     {
