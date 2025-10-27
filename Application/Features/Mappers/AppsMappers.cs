@@ -16,6 +16,12 @@ public static class AppsMappers
         };
     }
 
+    public static App UpdateEntity(App app, UpdateAppRequest request)
+    {
+        app.Name = request.Name;
+        return app;
+    }
+
     public static AppInfoDTO ToDTO(App app)
     {
         return new AppInfoDTO

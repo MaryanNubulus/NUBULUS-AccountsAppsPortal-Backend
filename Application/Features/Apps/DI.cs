@@ -1,6 +1,7 @@
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.CreateApp;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.ExistKeyApp;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.GetApps;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.PauseResumeApp;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps;
 
@@ -11,6 +12,7 @@ public static class DI
         services.AddTransient<IExistKeyAppService, ExistKeyAppService>();
         services.AddTransient<ICreateAppService, CreateAppService>();
         services.AddTransient<IGetAppsService, GetAppsService>();
+        services.AddTransient<IPauseResumeAppService, PauseResumeAppService>();
 
         return services;
     }
@@ -19,6 +21,7 @@ public static class DI
     {
         app.MapCreateAppEndPoint();
         app.MapGetAppsEndPoint();
+        app.MapPauseResumeAppEndPoint();
 
         return app;
     }
