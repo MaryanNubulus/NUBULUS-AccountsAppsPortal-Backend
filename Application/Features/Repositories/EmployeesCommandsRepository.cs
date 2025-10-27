@@ -5,17 +5,17 @@ using NUBULUS.AccountsAppsPortalBackEnd.Infraestructure;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 
-public class UsersCommandsRepository : IUsersCommandsRepository
+public class EmployeesCommandsRepository : IEmployeesCommandsRepository
 {
     private readonly INoSQLClient _noSQLClient;
-    private readonly IMongoCollection<User> _collection;
-    private const string CollectionName = $"{nameof(User)}s";
-    public UsersCommandsRepository(INoSQLClient noSQLClient)
+    private readonly IMongoCollection<Employee> _collection;
+    private const string CollectionName = $"{nameof(Employee)}s";
+    public EmployeesCommandsRepository(INoSQLClient noSQLClient)
     {
         _noSQLClient = noSQLClient;
-        _collection = _noSQLClient.GetCollection<User>(CollectionName);
+        _collection = _noSQLClient.GetCollection<Employee>(CollectionName);
     }
-    public async Task<bool> AddAsync(User entity)
+    public async Task<bool> AddAsync(Employee entity)
     {
         await _collection.InsertOneAsync(entity);
         return _collection.Find(x => x.Id == entity.Id).Any();
@@ -27,7 +27,7 @@ public class UsersCommandsRepository : IUsersCommandsRepository
         return !_collection.Find(x => x.Id == id).Any();
     }
 
-    public async Task<bool> UpdateAsync(Guid id, User entity)
+    public async Task<bool> UpdateAsync(Guid id, Employee entity)
     {
         await _collection.ReplaceOneAsync(x => x.Id == id, entity);
         return _collection.Find(x => x.Id == id).Any();

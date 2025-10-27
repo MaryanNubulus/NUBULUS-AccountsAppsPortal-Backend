@@ -2,9 +2,9 @@
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
 
-public class GetUsersResponse
+public class GetEmployeesResponse
 {
     public bool Success { get; set; } = false;
     public string? Message { get; set; } = null;
-    public List<UserInfoDTO>? Users { get; set; } = null;
+    public List<EmployeeInfoDTO>? Employees { get; set; } = null;
 }

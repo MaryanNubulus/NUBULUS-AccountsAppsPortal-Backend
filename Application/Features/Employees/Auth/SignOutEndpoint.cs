@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users.Auth;
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.Auth;
 
 public static class SignOutEndpoint
 {

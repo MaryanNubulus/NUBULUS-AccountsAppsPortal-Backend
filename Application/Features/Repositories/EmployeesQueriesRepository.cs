@@ -5,23 +5,23 @@ using NUBULUS.AccountsAppsPortalBackEnd.Infraestructure;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 
-public class UsersQueriesRepository : IUsersQueriesRepository
+public class EmployeesQueriesRepository : IEmployeesQueriesRepository
 {
     private readonly INoSQLClient _noSQLClient;
-    private readonly IMongoCollection<User> _collection;
-    private const string CollectionName = $"{nameof(User)}s";
+    private readonly IMongoCollection<Employee> _collection;
+    private const string CollectionName = $"{nameof(Employee)}s";
 
-    public UsersQueriesRepository(INoSQLClient noSQLClient)
+    public EmployeesQueriesRepository(INoSQLClient noSQLClient)
     {
         _noSQLClient = noSQLClient;
-        _collection = _noSQLClient.GetCollection<User>(CollectionName);
+        _collection = _noSQLClient.GetCollection<Employee>(CollectionName);
     }
-    public IQueryable<User> GetAll()
+    public IQueryable<Employee> GetAll()
     {
         return _collection.AsQueryable();
     }
 
-    public Task<User> GetOneAsync(Guid id)
+    public Task<Employee> GetOneAsync(Guid id)
     {
         return _collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }

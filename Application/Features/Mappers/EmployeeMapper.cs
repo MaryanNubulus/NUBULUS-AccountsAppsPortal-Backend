@@ -3,11 +3,11 @@ using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers
 {
-    public static class UserMapper
+    public static class EmployeeMapper
     {
-        public static User CreateEntity(CreateUserRequest request)
+        public static Employee CreateEntity(CreateEmployeeRequest request)
         {
-            return new User
+            return new Employee
             {
                 Id = Guid.NewGuid(),
                 Email = request.Email,
@@ -16,14 +16,14 @@ namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers
             };
         }
 
-        public static UserInfoDTO ToDTO(User user)
+        public static EmployeeInfoDTO ToDTO(Employee employee)
         {
-            return new UserInfoDTO
+            return new EmployeeInfoDTO
             {
-                Id = user.Id,
-                Email = user.Email,
-                Name = user.Name,
-                IsActive = user.IsActive
+                Id = employee.Id,
+                Email = employee.Email,
+                Name = employee.Name,
+                IsActive = employee.IsActive
             };
         }
     }
