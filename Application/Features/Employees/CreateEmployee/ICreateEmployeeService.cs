@@ -1,8 +1,15 @@
-﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+﻿
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.CreateEmployee;
 
 public interface ICreateEmployeeService
 {
-    Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request);
+    Task CreateEmployeeAsync(string email, string name);
+
+    ResultType ResultType { get; }
+
+    string? Message { get; }
+
+    Dictionary<string, string[]> ValidationErrors { get; }
 }

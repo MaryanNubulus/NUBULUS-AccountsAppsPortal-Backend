@@ -1,4 +1,5 @@
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers
@@ -10,7 +11,7 @@ namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers
             return new Employee
             {
                 Id = Guid.NewGuid(),
-                Email = request.Email,
+                Email = request.Email.Value,
                 Name = request.Name,
                 IsActive = true
             };

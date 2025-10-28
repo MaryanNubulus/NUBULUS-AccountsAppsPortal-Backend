@@ -5,18 +5,18 @@ using NUBULUS.AccountsAppsPortalBackEnd.Infraestructure;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 
-public class AppsCommandsRepository : IAppsCommandsRepository
+public class AccountsCommandsRepository : IAccountsCommandsRepository
 {
     private readonly INoSQLClient _noSQLClient;
-    private readonly IMongoCollection<App> _collection;
-    private const string CollectionName = $"{nameof(App)}s";
+    private readonly IMongoCollection<Account> _collection;
+    private const string CollectionName = $"{nameof(Account)}s";
 
-    public AppsCommandsRepository(INoSQLClient noSQLClient)
+    public AccountsCommandsRepository(INoSQLClient noSQLClient)
     {
         _noSQLClient = noSQLClient;
-        _collection = _noSQLClient.GetCollection<App>(CollectionName);
+        _collection = _noSQLClient.GetCollection<Account>(CollectionName);
     }
-    public async Task<bool> AddAsync(App entity)
+    public async Task<bool> AddAsync(Account entity)
     {
         await _collection.InsertOneAsync(entity);
         return _collection.Find(x => x.Id == entity.Id).Any();
@@ -28,7 +28,7 @@ public class AppsCommandsRepository : IAppsCommandsRepository
         return !_collection.Find(x => x.Id == id).Any();
     }
 
-    public async Task<bool> UpdateAsync(Guid id, App entity)
+    public async Task<bool> UpdateAsync(Guid id, Account entity)
     {
         await _collection.ReplaceOneAsync(x => x.Id == id, entity);
         return _collection.Find(x => x.Id == id).Any();

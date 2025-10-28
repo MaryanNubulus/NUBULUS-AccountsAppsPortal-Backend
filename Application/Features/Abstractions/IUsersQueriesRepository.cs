@@ -3,6 +3,6 @@ using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 
-public interface IAccountsCommandsRepository : ICommand, IGenericCommandsRepository<Guid, Account>
+public interface IUsersQueriesRepository : IQuery, IGenericQueriesRepository<Guid, User>
 {
 }

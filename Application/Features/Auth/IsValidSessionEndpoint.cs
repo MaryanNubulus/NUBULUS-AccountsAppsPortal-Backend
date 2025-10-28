@@ -1,4 +1,4 @@
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.Auth;
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Auth;
 
 public static class IsValidSessionEndpoint
 {

@@ -1,4 +1,4 @@
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
 
 public class AppInfoDTO
 {

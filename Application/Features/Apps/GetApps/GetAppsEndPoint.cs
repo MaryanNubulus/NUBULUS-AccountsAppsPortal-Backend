@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Responses;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.GetApps;
 
@@ -14,11 +14,8 @@ public static class GetAppsEndPoint
 
             if (apps == null || !apps.Any())
             {
-                response.Success = false;
-                response.Message = "No apps found.";
                 return Results.Ok(response);
             }
-            response.Success = true;
             response.Apps = apps.ToList();
 
             return Results.Ok(response);

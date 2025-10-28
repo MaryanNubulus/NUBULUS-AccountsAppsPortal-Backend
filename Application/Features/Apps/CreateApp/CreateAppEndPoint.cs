@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.ExistKeyApp;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.CreateApp;
 

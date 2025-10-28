@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.UpdateApp;
 
