@@ -36,8 +36,7 @@ Aquest mòdul gestiona les operacions relacionades amb els empleats dins l'aplic
 
 1. Afegir els endpoints al pipeline:
    ```csharp
-   app.MapGetEmployeesEndPoint();
-   app.MapGetCurrentEmployeeEndPoint();
+   app.MapEmployeesEndpoints();
    ```
 2. Configurar serveis:
    ```csharp

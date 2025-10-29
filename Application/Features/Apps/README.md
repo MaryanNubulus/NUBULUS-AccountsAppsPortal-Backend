@@ -40,10 +40,7 @@ Aquest mòdul gestiona les operacions relacionades amb les aplicacions dins el s
 
 1. Afegir els endpoints al pipeline:
    ```csharp
-   app.MapCreateAppEndPoint();
-   app.MapGetAppsEndPoint();
-   app.MapPauseResumeAppEndPoint();
-   app.MapUpdateAppEndPoint();
+   app.MapAppsEndpoints();
    ```
 2. Configurar serveis:
    ```csharp
@@ -54,7 +51,7 @@ Aquest mòdul gestiona les operacions relacionades amb les aplicacions dins el s
 
 ## Flux de Funcionament
 
-1. L'usuari autenticat pot crear una aplicació via `POST /apps`.
+1. L'empleat autenticat pot crear una aplicació via `POST /apps`.
 2. Pot consultar totes les aplicacions via `GET /apps`.
 3. Pot pausar o reprendre una aplicació amb `POST /apps/{id}/pause` o `resume`.
 4. Pot actualitzar la informació d'una aplicació amb `PUT /apps/{id}`.
