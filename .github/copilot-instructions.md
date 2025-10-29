@@ -14,34 +14,107 @@ Este proyecto es una API backend construida con ASP.NET Core 8 utilizando Minima
   - Features organizadas por módulos: `Auth`, `Apps`, `Employees`
   - Cada módulo tiene su propio `DI.cs` para registro de servicios
   - DTOs y modelos específicos en `Common/Models`
+  - Casos de uso organizados por carpetas (ej: `CreateApp/`)
 
 - **Infrastructure**: Implementaciones técnicas (`Infrastructure/`)
   - MongoDB como base de datos principal
   - `MongoDBClient` como implementación de `INoSQLClient`
 
+## Patrones y Estilo de Programación
+
+### Estructura de Request/Response
+
+- Usar `record` para DTOs inmutables (ver `CreateAppRequest`)
+- Validación encapsulada en los propios modelos:
+
+```csharp
+public record CreateAppRequest
+{
+    // Constructor privado para validación
+    private CreateAppRequest(string key, string name)
+    {
+        Key = key;
+        Name = name;
+        Validate();
+    }
+
+    // Factory method público
+    public static CreateAppRequest Create(string key, string name)
+    {
+        return new CreateAppRequest(key, name);
+    }
+}
+```
+
+### Manejo de Errores y Resultados
+
+- Usar `ResultType` enum para estados de operación:
+  - `Ok`: Operación exitosa
+  - `Conflict`: Conflicto con datos existentes
+  - `Problems`: Errores de validación
+  - `Error`: Errores inesperados
+- Mantener mensajes de error en el servicio
+- Usar diccionario para errores de validación
+
 ## Patrones y Convenciones
 
-### Estructura de Módulos
+### Estructura de Módulos y Casos de Uso
 
-Cada módulo (Auth, Apps, Employees) sigue una estructura consistente:
+Cada módulo sigue esta estructura:
 
-- `README.md` con documentación específica
-- Endpoints en archivos separados (ej: `SignInEndpoint.cs`)
-- Carpetas por caso de uso (ej: `CreateApp/`, `GetApps/`)
+```
+Application/Common/Requests/
+                    └── CreateEntityRequest.cs
+Application/Features/ModuleName/
+                            ├── README.md
+                            ├── DI.cs
+                            ├── Common/
+                            │   └── EntityMappers.cs
+                            └── CreateEntity/
+                                ├── CreateEntityEndpoint.cs
+                                ├── CreateEntityService.cs
+                                └── ICreateEntityService.cs
+```
 
-### Endpoints
+### Endpoints (Minimal APIs)
 
 - Rutas base: `/api/v1/{module}`
-- Implementados como Minimal APIs
+- Un archivo por endpoint
+- Usar extensión de `WebApplication`
 - Autenticación vía OpenID Connect (Microsoft)
 - CORS configurado para `http://localhost:5173`
+- Patrón de respuesta consistente:
 
-### Repositorios
+```csharp
+public static WebApplication MapEndpoint(this WebApplication app)
+{
+    app.MapPost("/api/v1/resource", async ([FromServices] IService service,
+                                         [FromBody] Request request) =>
+    {
+        await service.ExecuteAsync(request);
+        return service.ResultType switch
+        {
+            ResultType.Ok => Results.Created(),
+            ResultType.Conflict => Results.Conflict(new { service.Message }),
+            ResultType.Problems => Results.ValidationProblem(service.ValidationErrors),
+            _ => Results.Problem(service.Message)
+        };
+    }).RequireAuthorization();
 
-- Interfaces separadas para comandos y consultas:
+    return app;
+}
+```
+
+### Servicios y Repositorios
+
+- Interfaces claras con responsabilidad única
+- Separación CQRS:
   - `I{Entity}CommandsRepository`
   - `I{Entity}QueriesRepository`
-- Implementaciones en `Application/Features/Repositories`
+- Estado de resultado en el servicio (no excepciones para flujo normal)
+- Validación antes de operaciones de BD
+- Verificación de existencia/unicidad
+- Métodos asíncronos para IO
 
 ## Configuración y Dependencias
 
