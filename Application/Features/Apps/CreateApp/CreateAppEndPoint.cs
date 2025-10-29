@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.ExistKeyApp;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.CreateApp;
 
@@ -9,15 +9,28 @@ public static class CreateAppEndPoint
     public static WebApplication MapCreateAppEndPoint(this WebApplication app)
     {
         app.MapPost("/api/v1/apps", async ([FromServices] ICreateAppService createAppService,
-                                           [FromServices] IExistKeyAppService existKeyAppService,
                                            [FromBody] CreateAppRequest request) =>
         {
-            var keyExists = await existKeyAppService.ExistKeyAppAsync(request.Key);
-            if (keyExists) return Results.Conflict();
+            await createAppService.CreateAppAsync(request);
+            var result = createAppService.ResultType;
 
-            return await createAppService.CreateAppAsync(request)
-                ? Results.Ok()
-                : Results.BadRequest();
+            switch (result)
+            {
+                case ResultType.Ok:
+                    return Results.Created();
+
+                case ResultType.Conflict:
+                    return Results.Conflict(new { createAppService.Message });
+
+                case ResultType.Problems:
+                    return Results.ValidationProblem(createAppService.ValidationErrors);
+
+                case ResultType.Error:
+                    return Results.Problem(createAppService.Message);
+
+                default:
+                    return Results.Problem("An unexpected error occurred.");
+            }
         }).RequireAuthorization();
 
         return app;

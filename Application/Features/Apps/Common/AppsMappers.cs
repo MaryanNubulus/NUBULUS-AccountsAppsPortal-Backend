@@ -2,7 +2,7 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers;
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.Common;
 
 public static class AppsMappers
 {
