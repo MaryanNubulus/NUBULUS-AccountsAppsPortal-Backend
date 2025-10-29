@@ -2,7 +2,7 @@
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Mappers;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.Common;
 using NUBULUS.AccountsAppsPortalBackEnd.Domain.Entities;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.CreateEmployee;

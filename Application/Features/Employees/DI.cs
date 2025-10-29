@@ -1,4 +1,5 @@
-﻿using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.CreateEmployee;
+﻿
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.CreateEmployee;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.GetCurrentEmployee;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.GetEmployees;
 
@@ -16,7 +17,6 @@ public static class DI
     }
     public static WebApplication MapEmployeesEndpoints(this WebApplication app)
     {
-
         app.MapGetEmployeesEndPoint();
 
         app.MapGetCurrentEmployeeEndPoint();
