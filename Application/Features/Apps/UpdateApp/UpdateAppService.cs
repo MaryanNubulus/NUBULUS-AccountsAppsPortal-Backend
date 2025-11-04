@@ -1,8 +1,43 @@
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.Common;
+
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.UpdateApp;
+
+internal sealed class UpdateAppResponse : IGenericResponse<AppInfoDTO>
+{
+    public ResultType ResultType { get; init; }
+    public string? Message { get; init; }
+    public Dictionary<string, string[]>? ValidationErrors { get; init; }
+    public AppInfoDTO? Data { get; init; }
+
+    public static IGenericResponse<AppInfoDTO> Success(AppInfoDTO data) => new UpdateAppResponse
+    {
+        ResultType = ResultType.Ok,
+        Data = data
+    };
+
+    public static IGenericResponse<AppInfoDTO> NotFound(string message) => new UpdateAppResponse
+    {
+        ResultType = ResultType.NotFound,
+        Message = message
+    };
+
+    public static IGenericResponse<AppInfoDTO> Error(string message) => new UpdateAppResponse
+    {
+        ResultType = ResultType.Error,
+        Message = message
+    };
+
+    public static IGenericResponse<AppInfoDTO> ValidationError(string field, string message) => new UpdateAppResponse
+    {
+        ResultType = ResultType.Problems,
+        ValidationErrors = new Dictionary<string, string[]> { { field, new[] { message } } }
+    };
+}
 
 public class UpdateAppService : IUpdateAppService
 {
@@ -15,44 +50,36 @@ public class UpdateAppService : IUpdateAppService
         _appsQueriesRepository = appsQueriesRepository;
     }
 
-    public ResultType ResultType { get; private set; } = ResultType.None;
-
-    public string? Message { get; private set; }
-
-    public Dictionary<string, string[]> ValidationErrors { get; private set; } = new();
-
-    public async Task UpdateAppAsync(Guid id, UpdateAppRequest request)
+    public async Task<IGenericResponse<AppInfoDTO>> ExecuteAsync(IdObject id, UpdateAppRequest request)
     {
         try
         {
+            IdObject.ValidateId(id.Value);
             request.Validate();
         }
         catch (Exception ex)
         {
-            ResultType = ResultType.Problems;
-            ValidationErrors = new() { { "Request", new[] { ex.Message } } };
-            return;
+            return UpdateAppResponse.ValidationError("Request", ex.Message);
         }
+
         try
         {
-            var app = await _appsQueriesRepository.GetOneAsync(id);
+            var app = await _appsQueriesRepository.GetOneAsync(id.Value);
             if (app == null)
             {
-                ResultType = ResultType.NotFound;
-                Message = "App not found.";
-                return;
+                return UpdateAppResponse.NotFound("App not found.");
             }
 
             AppsMappers.UpdateEntity(app, request);
 
-            await _appsCommandsRepository.UpdateAsync(id, app);
+            await _appsCommandsRepository.UpdateAsync(id.Value, app);
 
-            ResultType = ResultType.Ok;
+            var appDto = AppsMappers.ToDTO(app);
+            return UpdateAppResponse.Success(appDto);
         }
         catch (Exception ex)
         {
-            ResultType = ResultType.Error;
-            Message = ex.Message;
+            return UpdateAppResponse.Error(ex.Message);
         }
     }
 }

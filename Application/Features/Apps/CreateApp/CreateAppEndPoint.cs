@@ -11,26 +11,15 @@ public static class CreateAppEndPoint
         app.MapPost("/api/v1/apps", async ([FromServices] ICreateAppService createAppService,
                                            [FromBody] CreateAppRequest request) =>
         {
-            await createAppService.CreateAppAsync(request);
-            var result = createAppService.ResultType;
+            var response = await createAppService.ExecuteAsync(request);
 
-            switch (result)
+            return response.ResultType switch
             {
-                case ResultType.Ok:
-                    return Results.Created();
-
-                case ResultType.Conflict:
-                    return Results.Conflict(new { createAppService.Message });
-
-                case ResultType.Problems:
-                    return Results.ValidationProblem(createAppService.ValidationErrors);
-
-                case ResultType.Error:
-                    return Results.Problem(createAppService.Message);
-
-                default:
-                    return Results.Problem("An unexpected error occurred.");
-            }
+                ResultType.Ok => Results.Created($"/api/v1/apps/{response.Data?.Id}", response.Data),
+                ResultType.Conflict => Results.Conflict(new { response.Message }),
+                ResultType.Problems => Results.ValidationProblem(response.ValidationErrors!),
+                _ => Results.Problem(response.Message)
+            };
         }).RequireAuthorization();
 
         return app;

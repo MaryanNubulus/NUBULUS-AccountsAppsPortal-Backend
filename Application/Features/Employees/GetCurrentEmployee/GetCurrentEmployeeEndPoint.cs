@@ -10,26 +10,15 @@ public static class GetCurrentEmployeeEndPoint
         app.MapGet("/api/v1/employees/current", async (HttpContext context,
             [FromServices] IGetCurrentEmployeeService getCurrentEmployeeService) =>
         {
+            var response = await getCurrentEmployeeService.ExecuteAsync(context.User.Identities.FirstOrDefault()!.Name!);
 
-            var employeeInfo = await getCurrentEmployeeService.GetCurrentEmployeeAsync(context.User.Identities.FirstOrDefault()!.Name!);
-            var result = getCurrentEmployeeService.ResultType;
-
-            if (result == ResultType.Error)
+            return response.ResultType switch
             {
-                return Results.Problem(getCurrentEmployeeService.Message);
-            }
-
-            if (result == ResultType.Problems)
-            {
-                return Results.ValidationProblem(getCurrentEmployeeService.ValidationErrors);
-            }
-
-            if (result == ResultType.NotFound)
-            {
-                return Results.NotFound();
-            }
-
-            return Results.Ok(employeeInfo);
+                ResultType.Ok => Results.Ok(response.Data),
+                ResultType.NotFound => Results.NotFound(new { response.Message }),
+                ResultType.Problems => Results.ValidationProblem(response.ValidationErrors!),
+                _ => Results.Problem(response.Message)
+            };
 
         })
         .RequireAuthorization();

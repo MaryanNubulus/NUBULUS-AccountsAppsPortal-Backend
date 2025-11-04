@@ -3,9 +3,9 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 
-namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.UpdateApp;
+namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Accounts.UpdateAccount;
 
-public interface IUpdateAppService
+public interface IUpdateAccountService
 {
-    Task<IGenericResponse<AppInfoDTO>> ExecuteAsync(IdObject id, UpdateAppRequest request);
+    Task<IGenericResponse<AccountInfoDTO>> ExecuteAsync(IdObject accountId, UpdateAccountRequest request);
 }

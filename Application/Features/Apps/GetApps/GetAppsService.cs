@@ -3,7 +3,29 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.Common;
+
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.GetApps;
+
+internal sealed class GetAppsResponse : IGenericResponse<IEnumerable<AppInfoDTO>>
+{
+    public ResultType ResultType { get; init; }
+    public string? Message { get; init; }
+    public Dictionary<string, string[]>? ValidationErrors { get; init; }
+    public IEnumerable<AppInfoDTO>? Data { get; init; }
+
+    public static IGenericResponse<IEnumerable<AppInfoDTO>> Success(IEnumerable<AppInfoDTO> data) => new GetAppsResponse
+    {
+        ResultType = ResultType.Ok,
+        Data = data
+    };
+
+    public static IGenericResponse<IEnumerable<AppInfoDTO>> Error(string message) => new GetAppsResponse
+    {
+        ResultType = ResultType.Error,
+        Message = message,
+        Data = Enumerable.Empty<AppInfoDTO>()
+    };
+}
 
 public class GetAppsService : IGetAppsService
 {
@@ -14,33 +36,22 @@ public class GetAppsService : IGetAppsService
         _appsQueriesRepository = appsQueriesRepository;
     }
 
-    public ResultType ResultType { get; private set; } = ResultType.None;
-
-    public string? Message { get; private set; }
-
-    public async Task<IEnumerable<AppInfoDTO>> GetAppsAsync()
+    public async Task<IGenericResponse<IEnumerable<AppInfoDTO>>> ExecuteAsync()
     {
-        var appsList = new List<AppInfoDTO>();
         try
         {
             var appsEntities = await _appsQueriesRepository.GetAll().ToListAsync();
             if (appsEntities == null || !appsEntities.Any())
             {
-                ResultType = ResultType.Ok;
-                Message = "No apps found.";
-                return appsList;
+                return GetAppsResponse.Success(Enumerable.Empty<AppInfoDTO>());
             }
 
-            appsList = appsEntities.Select(AppsMappers.ToDTO).ToList();
-            ResultType = ResultType.Ok;
+            var appsList = appsEntities.Select(AppsMappers.ToDTO).ToList();
+            return GetAppsResponse.Success(appsList);
         }
         catch (Exception ex)
         {
-            ResultType = ResultType.Error;
-            Message = ex.Message;
-            return appsList;
+            return GetAppsResponse.Error(ex.Message);
         }
-
-        return appsList;
     }
 }

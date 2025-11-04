@@ -18,17 +18,16 @@ public static class SignInEndpoint
             var employeeEmail = context.User.Identities.FirstOrDefault()!.Name!;
             var employeeName = context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Unknown";
 
-            await createEmployeeService.CreateEmployeeAsync(employeeEmail, employeeName);
-            var result = createEmployeeService.ResultType;
+            var response = await createEmployeeService.ExecuteAsync(employeeEmail, employeeName);
 
-            if (result == ResultType.Error)
+            if (response.ResultType == ResultType.Error)
             {
-                return Results.Problem(createEmployeeService.Message);
+                return Results.Problem(response.Message);
             }
 
-            if (result == ResultType.Problems)
+            if (response.ResultType == ResultType.Problems)
             {
-                return Results.ValidationProblem(createEmployeeService.ValidationErrors);
+                return Results.ValidationProblem(response.ValidationErrors!);
             }
 
             return Results.Redirect("http://localhost:5173/private");

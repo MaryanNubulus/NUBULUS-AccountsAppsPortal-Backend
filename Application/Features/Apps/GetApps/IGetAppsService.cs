@@ -1,13 +1,9 @@
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.GetApps;
 
 public interface IGetAppsService
 {
-    Task<IEnumerable<AppInfoDTO>> GetAppsAsync();
-
-    ResultType ResultType { get; }
-
-    string? Message { get; }
+    Task<IGenericResponse<IEnumerable<AppInfoDTO>>> ExecuteAsync();
 }

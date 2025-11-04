@@ -1,15 +1,10 @@
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.CreateApp;
 
 public interface ICreateAppService
 {
-    Task CreateAppAsync(CreateAppRequest request);
-
-    ResultType ResultType { get; }
-
-    string? Message { get; }
-
-    Dictionary<string, string[]> ValidationErrors { get; }
+    Task<IGenericResponse<AppInfoDTO>> ExecuteAsync(CreateAppRequest request);
 }

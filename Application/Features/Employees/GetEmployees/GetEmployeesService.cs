@@ -6,6 +6,27 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.Common;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.GetEmployees;
 
+internal sealed class GetEmployeesResponse : IGenericResponse<IEnumerable<EmployeeInfoDTO>>
+{
+    public ResultType ResultType { get; init; }
+    public string? Message { get; init; }
+    public Dictionary<string, string[]>? ValidationErrors { get; init; }
+    public IEnumerable<EmployeeInfoDTO>? Data { get; init; }
+
+    public static IGenericResponse<IEnumerable<EmployeeInfoDTO>> Success(IEnumerable<EmployeeInfoDTO> data) => new GetEmployeesResponse
+    {
+        ResultType = ResultType.Ok,
+        Data = data
+    };
+
+    public static IGenericResponse<IEnumerable<EmployeeInfoDTO>> Error(string message) => new GetEmployeesResponse
+    {
+        ResultType = ResultType.Error,
+        Message = message,
+        Data = Enumerable.Empty<EmployeeInfoDTO>()
+    };
+}
+
 public class GetEmployeesService : IGetEmployeesService
 {
     private readonly IEmployeesQueriesRepository _employeesQueriesRepository;
@@ -15,36 +36,17 @@ public class GetEmployeesService : IGetEmployeesService
         _employeesQueriesRepository = employeesQueriesRepository;
     }
 
-    public ResultType ResultType { get; private set; } = ResultType.None;
-
-    public string? Message { get; private set; }
-
-    public async Task<IEnumerable<EmployeeInfoDTO>> GetEmployeesAsync()
+    public async Task<IGenericResponse<IEnumerable<EmployeeInfoDTO>>> ExecuteAsync()
     {
-        List<EmployeeInfoDTO> employees = new();
-
         try
         {
             var employeeEntities = await _employeesQueriesRepository.GetAll().ToListAsync();
-            employees = employeeEntities.Select(EmployeeMapper.ToDTO).ToList();
+            var employees = employeeEntities.Select(EmployeeMapper.ToDTO).ToList();
+            return GetEmployeesResponse.Success(employees);
         }
         catch (Exception ex)
         {
-            ResultType = ResultType.Error;
-            Message = $"An error occurred while retrieving employees: {ex.Message}";
+            return GetEmployeesResponse.Error($"An error occurred while retrieving employees: {ex.Message}");
         }
-
-        if (employees.Count == 0)
-        {
-            ResultType = ResultType.Ok;
-            Message = "No employees found.";
-        }
-        else
-        {
-            ResultType = ResultType.Ok;
-            Message = $"{employees.Count} employees found.";
-        }
-
-        return employees;
     }
 }

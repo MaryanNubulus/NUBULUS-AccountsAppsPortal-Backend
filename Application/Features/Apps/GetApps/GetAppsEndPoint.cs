@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Responses;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.GetApps;
 
@@ -10,20 +9,13 @@ public static class GetAppsEndPoint
     {
         app.MapGet("/api/v1/apps", async ([FromServices] IGetAppsService getAppsService) =>
         {
-            var apps = await getAppsService.GetAppsAsync();
-            var result = getAppsService.ResultType;
+            var response = await getAppsService.ExecuteAsync();
 
-            switch (result)
+            return response.ResultType switch
             {
-                case ResultType.Ok:
-                    return Results.Ok(new GetAppsResponse(apps.ToList()));
-
-                case ResultType.Error:
-                    return Results.Problem(getAppsService.Message);
-
-                default:
-                    return Results.Problem("An unexpected error occurred.");
-            }
+                ResultType.Ok => Results.Ok(response.Data),
+                _ => Results.Problem(response.Message)
+            };
         }).RequireAuthorization();
 
         return app;

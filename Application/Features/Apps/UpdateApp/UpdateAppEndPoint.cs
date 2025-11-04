@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.UpdateApp;
 
@@ -12,26 +13,16 @@ public static class UpdateAppEndPoint
                                                   [FromRoute] Guid id,
                                                   [FromBody] UpdateAppRequest request) =>
         {
-            await updateAppService.UpdateAppAsync(id, request);
-            var result = updateAppService.ResultType;
+            var idVO = IdObject.Create(id);
+            var response = await updateAppService.ExecuteAsync(idVO, request);
 
-            switch (result)
+            return response.ResultType switch
             {
-                case ResultType.Ok:
-                    return Results.Ok();
-
-                case ResultType.NotFound:
-                    return Results.NotFound(new { updateAppService.Message });
-
-                case ResultType.Problems:
-                    return Results.ValidationProblem(updateAppService.ValidationErrors);
-
-                case ResultType.Error:
-                    return Results.Problem(updateAppService.Message);
-
-                default:
-                    return Results.Problem("An unexpected error occurred.");
-            }
+                ResultType.Ok => Results.Ok(response.Data),
+                ResultType.NotFound => Results.NotFound(new { response.Message }),
+                ResultType.Problems => Results.ValidationProblem(response.ValidationErrors!),
+                _ => Results.Problem(response.Message)
+            };
         }).RequireAuthorization();
 
         return app;

@@ -6,6 +6,12 @@ public record Email
 
     public static Email Create(string value) => new Email(value);
 
+    public static string ValidateEmail(string email)
+    {
+        var emailVO = new Email(email);
+        return emailVO.Value;
+    }
+
     private Email(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || !value.Contains("@"))

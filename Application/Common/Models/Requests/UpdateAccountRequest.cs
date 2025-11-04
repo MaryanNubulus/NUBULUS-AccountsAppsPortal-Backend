@@ -2,38 +2,34 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Requests;
 
-public record CreateAccountRequest
+public record UpdateAccountRequest
 {
-    public string AccountName { get; init; }
+    public string Name { get; init; }
     public string UserName { get; init; }
-
     public string UserEmail { get; init; }
-
     public string UserPhone { get; init; }
 
-    public CreateAccountRequest()
+    public UpdateAccountRequest()
     {
-        AccountName = string.Empty;
+        Name = string.Empty;
         UserName = string.Empty;
         UserEmail = string.Empty;
         UserPhone = string.Empty;
     }
 
-
-    private CreateAccountRequest(string accountName, string userName, string userEmail, string userPhone)
+    private UpdateAccountRequest(string name, string userName, string userEmail, string userPhone)
     {
-        AccountName = accountName;
+        Name = name;
         UserName = userName;
         UserPhone = userPhone;
         UserEmail = Email.ValidateEmail(userEmail);
         Validate();
     }
-
-    public CreateAccountRequest Validate()
+    public UpdateAccountRequest Validate()
     {
-        if (string.IsNullOrWhiteSpace(AccountName) || AccountName.Length > 256 || AccountName.Length < 2)
+        if (string.IsNullOrWhiteSpace(Name) || Name.Length > 256 || Name.Length < 2)
         {
-            throw new ArgumentException("Invalid account name.", nameof(AccountName));
+            throw new ArgumentException("Invalid account name.", nameof(Name));
         }
         if (string.IsNullOrWhiteSpace(UserName) || UserName.Length > 256 || UserName.Length < 2)
         {
@@ -46,8 +42,8 @@ public record CreateAccountRequest
 
         return this;
     }
-    public static CreateAccountRequest Create(string accountName, string userName, string userEmail, string userPhone)
+    public static UpdateAccountRequest Create(string name, string userName, string userEmail, string userPhone)
     {
-        return new CreateAccountRequest(accountName, userName, userEmail, userPhone);
+        return new UpdateAccountRequest(name, userName, userEmail, userPhone);
     }
 }

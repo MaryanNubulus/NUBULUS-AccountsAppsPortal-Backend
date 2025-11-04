@@ -3,6 +3,7 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Auth;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Accounts;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application;
 
@@ -35,6 +36,7 @@ public static class DI
         app.MapAuthEndpoints();
         app.MapAppsEndpoints();
         app.MapEmployeesEndpoints();
+        app.MapAccountsEndpoints();
 
         return app;
     }

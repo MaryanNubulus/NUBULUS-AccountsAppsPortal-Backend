@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Apps.PauseResumeApp;
 
@@ -10,43 +11,31 @@ public static class PauseResumeAppEndPoint
         app.MapPost("/api/v1/apps/{appId}/pause", async ([FromServices] IPauseResumeAppService pauseResumeAppService,
                                                          [FromRoute] Guid appId) =>
         {
-            await pauseResumeAppService.PauseResumeAppAsync(appId, false);
-            var result = pauseResumeAppService.ResultType;
-            switch (result)
+            var appIdVO = IdObject.Create(appId);
+            var response = await pauseResumeAppService.ExecuteAsync(appIdVO, false);
+
+            return response.ResultType switch
             {
-                case ResultType.Ok:
-                    return Results.Ok();
-
-                case ResultType.NotFound:
-                    return Results.NotFound(new { pauseResumeAppService.Message });
-
-                case ResultType.Error:
-                    return Results.Problem(pauseResumeAppService.Message);
-
-                default:
-                    return Results.Problem("An unexpected error occurred.");
-            }
+                ResultType.Ok => Results.Ok(response.Data),
+                ResultType.NotFound => Results.NotFound(new { response.Message }),
+                ResultType.Problems => Results.ValidationProblem(new Dictionary<string, string[]> { { "id", new[] { response.Message ?? "Invalid ID" } } }),
+                _ => Results.Problem(response.Message)
+            };
         }).RequireAuthorization();
 
         app.MapPost("/api/v1/apps/{appId}/resume", async ([FromServices] IPauseResumeAppService pauseResumeAppService,
                                                           [FromRoute] Guid appId) =>
         {
-            await pauseResumeAppService.PauseResumeAppAsync(appId, true);
-            var result = pauseResumeAppService.ResultType;
-            switch (result)
+            var appIdVO = IdObject.Create(appId);
+            var response = await pauseResumeAppService.ExecuteAsync(appIdVO, true);
+
+            return response.ResultType switch
             {
-                case ResultType.Ok:
-                    return Results.Ok();
-
-                case ResultType.NotFound:
-                    return Results.NotFound(new { pauseResumeAppService.Message });
-
-                case ResultType.Error:
-                    return Results.Problem(pauseResumeAppService.Message);
-
-                default:
-                    return Results.Problem("An unexpected error occurred.");
-            }
+                ResultType.Ok => Results.Ok(response.Data),
+                ResultType.NotFound => Results.NotFound(new { response.Message }),
+                ResultType.Problems => Results.ValidationProblem(new Dictionary<string, string[]> { { "id", new[] { response.Message ?? "Invalid ID" } } }),
+                _ => Results.Problem(response.Message)
+            };
         }).RequireAuthorization();
 
         return app;

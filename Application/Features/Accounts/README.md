@@ -36,9 +36,6 @@ Aquest mòdul s’encarrega de gestionar les operacions associades als comptes d
   - `IDesactiveActivateAccountService`
   - `IUpdateAccountService`
 
-- Serveis intern d'usuaris:
-  - `ICreateUserService`
-
 ---
 
 ## Configuració

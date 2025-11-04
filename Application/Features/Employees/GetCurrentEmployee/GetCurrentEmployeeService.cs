@@ -1,11 +1,37 @@
 using MongoDB.Driver.Linq;
-using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.DTOs;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.Models.Enums;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Common.ValueObjects;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Abstractions;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.Common;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees.GetCurrentEmployee;
+
+internal sealed class GetCurrentEmployeeResponse : IGenericResponse<EmployeeInfoDTO>
+{
+    public ResultType ResultType { get; init; }
+    public string? Message { get; init; }
+    public Dictionary<string, string[]>? ValidationErrors { get; init; }
+    public EmployeeInfoDTO? Data { get; init; }
+
+    public static IGenericResponse<EmployeeInfoDTO> Success(EmployeeInfoDTO data) => new GetCurrentEmployeeResponse
+    {
+        ResultType = ResultType.Ok,
+        Data = data
+    };
+
+    public static IGenericResponse<EmployeeInfoDTO> NotFound(string message) => new GetCurrentEmployeeResponse
+    {
+        ResultType = ResultType.NotFound,
+        Message = message
+    };
+
+    public static IGenericResponse<EmployeeInfoDTO> ValidationError(string field, string message) => new GetCurrentEmployeeResponse
+    {
+        ResultType = ResultType.Problems,
+        ValidationErrors = new Dictionary<string, string[]> { { field, new[] { message } } }
+    };
+}
 
 public class GetCurrentEmployeeService : IGetCurrentEmployeeService
 {
@@ -16,12 +42,7 @@ public class GetCurrentEmployeeService : IGetCurrentEmployeeService
         _employeesQueriesRepository = employeesQueriesRepository;
     }
 
-    public ResultType ResultType { get; private set; } = ResultType.None;
-
-    public string? Message { get; private set; }
-
-    public Dictionary<string, string[]> ValidationErrors { get; private set; } = new();
-    public async Task<EmployeeInfoDTO?> GetCurrentEmployeeAsync(string email)
+    public async Task<IGenericResponse<EmployeeInfoDTO>> ExecuteAsync(string email)
     {
         Email emailObject;
 
@@ -31,23 +52,16 @@ public class GetCurrentEmployeeService : IGetCurrentEmployeeService
         }
         catch (Exception ex)
         {
-            ValidationErrors.Add("Email", new[] { ex.Message });
-            ResultType = ResultType.Problems;
-            return null;
+            return GetCurrentEmployeeResponse.ValidationError("Email", ex.Message);
         }
 
         var employee = await _employeesQueriesRepository.GetAll().FirstOrDefaultAsync(x => x.Email == emailObject.Value);
         if (employee == null)
         {
-            ResultType = ResultType.Ok;
-            Message = "Employee not found.";
-            return null;
+            return GetCurrentEmployeeResponse.NotFound("Employee not found.");
         }
 
-        ResultType = ResultType.Ok;
-        Message = "Employee found.";
-
-        return EmployeeMapper.ToDTO(employee);
-
+        var employeeDto = EmployeeMapper.ToDTO(employee);
+        return GetCurrentEmployeeResponse.Success(employeeDto);
     }
 }
