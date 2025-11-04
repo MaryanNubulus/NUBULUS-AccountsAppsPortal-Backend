@@ -21,6 +21,7 @@ public static class DI
 
         services.AddTransient<IAccountsCommandsRepository, AccountsCommandsRepository>();
         services.AddTransient<IAccountsQueriesRepository, AccountsQueriesRepository>();
+        services.AddAccountsServices();
 
         services.AddTransient<IUsersCommandsRepository, UsersCommandsRepository>();
         services.AddTransient<IUsersQueriesRepository, UsersQueriesRepository>();
