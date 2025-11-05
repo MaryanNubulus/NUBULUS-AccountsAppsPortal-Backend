@@ -4,6 +4,7 @@ using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Repositories;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Employees;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Auth;
 using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Accounts;
+using NUBULUS.AccountsAppsPortalBackEnd.Application.Features.Users;
 
 namespace NUBULUS.AccountsAppsPortalBackEnd.Application;
 
@@ -25,6 +26,7 @@ public static class DI
 
         services.AddTransient<IUsersCommandsRepository, UsersCommandsRepository>();
         services.AddTransient<IUsersQueriesRepository, UsersQueriesRepository>();
+        services.AddUsersServices();
 
         services.AddTransient<IAccountsUsersCommandsRepository, AccountsUsersCommandsRepository>();
         services.AddTransient<IAccountsUsersQueriesRepository, AccountsUsersQueriesRepository>();
@@ -38,6 +40,7 @@ public static class DI
         app.MapAppsEndpoints();
         app.MapEmployeesEndpoints();
         app.MapAccountsEndpoints();
+        app.MapUsersEndpoints();
 
         return app;
     }

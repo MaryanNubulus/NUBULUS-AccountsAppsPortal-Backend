@@ -48,8 +48,17 @@ public class GetAccountsService : IGetAccountsService
         try
         {
             var accounts = await _accountsQueriesRepository.GetAll().ToListAsync();
-            var users = await _usersQueriesRepository.GetAll().ToListAsync();
-            var accountsUsers = await _accountsUsersQueriesRepository.GetAll().ToListAsync();
+
+            var accountsUsers = await _accountsUsersQueriesRepository
+                .GetAll()
+                .Where(au => au.Role == Domain.Entities.AccountsUsersRole.Owner)
+                .ToListAsync();
+
+            var ownerUserIds = accountsUsers.Select(au => au.UserId).ToList();
+            var users = await _usersQueriesRepository
+                .GetAll()
+                .Where(u => ownerUserIds.Contains(u.Id))
+                .ToListAsync();
 
             var accountsDTO = AccountMappers.ToDTOList(accounts, users, accountsUsers);
 

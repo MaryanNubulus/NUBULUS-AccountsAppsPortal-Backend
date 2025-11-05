@@ -42,11 +42,11 @@ Aquest mòdul s’encarrega de gestionar les operacions associades als comptes d
 
 1. Afegir els endpoints al pipeline:
    ```csharp
-   app.MapAppsEndpoints();
+   app.MapAccountsEndpoints();
    ```
 2. Configurar serveis:
    ```csharp
-   builder.Services.AddAppsServices();
+   builder.Services.AddAccountsServices();
    ```
 
 ---
