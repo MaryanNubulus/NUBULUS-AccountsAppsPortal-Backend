@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\nubulus.backend.api.csproj", "{B525BF4E-05DC-416A-B6E5-70FF99B816C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nubulus.domain", "domain\nubulus.domain.csproj", "{2930F498-A410-45C5-995E-349CE1F2224A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infraestructure", "infraestructure", "{B2513499-4C47-4721-B431-985F25E10098}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nubulus.backend.infraestructure.pgsql", "infraestructure\pgsql\nubulus.backend.infraestructure.pgsql.csproj", "{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B525BF4E-05DC-416A-B6E5-70FF99B816C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B525BF4E-05DC-416A-B6E5-70FF99B816C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B525BF4E-05DC-416A-B6E5-70FF99B816C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B525BF4E-05DC-416A-B6E5-70FF99B816C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2930F498-A410-45C5-995E-349CE1F2224A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2930F498-A410-45C5-995E-349CE1F2224A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2930F498-A410-45C5-995E-349CE1F2224A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2930F498-A410-45C5-995E-349CE1F2224A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D584C534-67A2-4CDC-A7F1-971E066815A8}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D0095D05-BCE1-4AAD-99F6-D1FAE91C33EC} = {B2513499-4C47-4721-B431-985F25E10098}
+	EndGlobalSection
+EndGlobal

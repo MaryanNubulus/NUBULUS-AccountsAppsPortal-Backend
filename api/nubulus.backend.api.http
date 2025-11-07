@@ -1,0 +1,6 @@
+@Nubulus.Backend.Api_HostAddress = http://localhost:5016
+
+GET {{Nubulus.Backend.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

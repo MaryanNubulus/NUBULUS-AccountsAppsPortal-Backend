@@ -1,6 +1,0 @@
-@NUBULUS.AccountsAppsPortalBackEnd_HostAddress = http://localhost:5016
-
-GET {{NUBULUS.AccountsAppsPortalBackEnd_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
