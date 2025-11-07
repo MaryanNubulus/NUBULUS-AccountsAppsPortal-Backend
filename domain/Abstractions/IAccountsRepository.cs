@@ -6,7 +6,8 @@ public interface IAccountsRepository
 {
     Task<AccountEntity> GetAccountByKeyAsync(string accountKey, CancellationToken cancellationToken = default);
     Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default);
-    Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default);
+    Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default);
+    Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default);
     Task CreateAccountAsync(CreateAccount command, CancellationToken cancellationToken = default);
     Task UpdateAccountAsync(AccountEntity command, CancellationToken cancellationToken = default);
     Task PauseAccountAsync(int accountId, CancellationToken cancellationToken = default);

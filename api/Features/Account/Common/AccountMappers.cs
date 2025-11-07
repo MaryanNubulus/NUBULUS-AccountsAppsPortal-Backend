@@ -10,6 +10,7 @@ public static class AccountMappers
         {
             Key = entity.AccountKey.Value,
             Name = entity.Name,
+            FullName = entity.FullName,
             Email = entity.Email.Value,
             Phone = entity.Phone,
             NumberId = entity.NumberId,

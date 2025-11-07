@@ -3,6 +3,7 @@ using Nubulus.Backend.Infraestructure.PostgreSQL;
 using Nubulus.Backend.Infraestructure.PostgreSQL.Models;
 using Nubulus.Domain.Abstractions;
 using Nubulus.Domain.Entities.Account;
+using Nubulus.Domain.ValueObjects;
 
 namespace Nubulus.Backend.Infraestructure.Pgsql.Repositories;
 
@@ -29,8 +30,6 @@ public class AccountRepository : IAccountsRepository
 
         return userExists;
     }
-
-
 
     public async Task CreateAccountAsync(CreateAccount command, CancellationToken cancellationToken = default)
     {
@@ -67,33 +66,62 @@ public class AccountRepository : IAccountsRepository
         await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
-    public async Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
+
+    public async Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Accounts.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(a =>
-                a.Name.Contains(searchTerm) ||
-                a.Email.Contains(searchTerm) ||
-                a.Phone.Contains(searchTerm) ||
-                a.NumberId.Contains(searchTerm));
+                a.Name.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.Phone.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.NumberId.ToUpper().Contains(searchTerm.ToUpper()));
         }
 
-        var accountEntities = query.Select(a => new AccountEntity
-        {
-            Id = a.Id,
-            AccountKey = new Domain.ValueObjects.AccountKey(a.Key),
-            Name = a.Name,
-            Email = new Domain.ValueObjects.EmailAddress(a.Email),
-            Phone = a.Phone,
-            NumberId = a.NumberId,
-            Status = a.Status == "A"
-                ? Domain.ValueObjects.AccountStatus.Active
-                : Domain.ValueObjects.AccountStatus.Inactive
-        });
+        return await query.CountAsync(cancellationToken);
+    }
 
-        return await Task.FromResult(accountEntities);
+    public async Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default)
+    {
+
+        var joinquery = from a in _dbContext.Accounts
+                        join au in _dbContext.AccountUsers on a.Id equals au.AccountId
+                        where au.Role == "Owner"
+                        join u in _dbContext.Users on au.UserId equals u.Id
+                        select new { Account = a, AccountUser = au, User = u };
+
+        var query = joinquery.OrderBy(a => a.Account.Id).AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(a =>
+                a.Account.Name.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.Account.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.Account.Phone.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.Account.NumberId.ToUpper().Contains(searchTerm.ToUpper()) ||
+                a.User.Name.ToUpper().Contains(searchTerm.ToUpper()));
+        }
+
+        if (page.HasValue && size.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * size.Value).Take(size.Value);
+        }
+
+        var results = await query.Select(a => new AccountEntity
+        {
+            Id = a.Account.Id,
+            AccountKey = new AccountKey(a.Account.Key),
+            Name = a.Account.Name,
+            FullName = a.User.Name,
+            Email = new EmailAddress(a.Account.Email),
+            Phone = a.Account.Phone,
+            NumberId = a.Account.NumberId,
+            Status = AccountStatus.Parse(a.Account.Status)
+        }).ToListAsync(cancellationToken);
+
+        return results.AsQueryable();
     }
     public Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default)
     {

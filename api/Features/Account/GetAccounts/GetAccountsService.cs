@@ -51,21 +51,16 @@ public class GetAccountsService
     {
         try
         {
-            var accountsQuery = await _accountsRepository.GetAccountsAsync(request.SearchTerm, cancellationToken);
-
-            var totalCount = await accountsQuery.CountAsync(cancellationToken);
+            var totalCount = await _accountsRepository.CountAccountsAsync(request.SearchTerm, cancellationToken);
 
             if (totalCount == 0)
             {
                 return GetAccountsResponse.NotFound("No accounts found.");
             }
 
-            var accountEntities = await accountsQuery
-                .Skip(((request.PageNumber ?? 1) - 1) * (request.PageSize ?? 10))
-                .Take(request.PageSize ?? 10)
-                .ToListAsync(cancellationToken);
+            var accountsQuery = await _accountsRepository.GetAccountsAsync(request.SearchTerm, request.PageNumber, request.PageSize, cancellationToken);
 
-            var accountDtos = accountEntities.ToDto();
+            var accountDtos = accountsQuery.ToList().ToDto();
 
             var paginatedResponse = new PaginatedResponse<AccountDto>(
                 totalCount: totalCount,
