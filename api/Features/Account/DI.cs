@@ -1,4 +1,5 @@
 using Nubulus.Backend.Api.Features.Account.CreateAccount;
+using Nubulus.Backend.Api.Features.Account.GetAccounts;
 using Nubulus.Backend.Infraestructure.Pgsql.Repositories;
 using Nubulus.Domain.Abstractions;
 
@@ -9,6 +10,7 @@ public static class DI
     public static IServiceCollection AddAccountFeature(this IServiceCollection services)
     {
         services.AddScoped<CreateAccountService>();
+        services.AddScoped<GetAccountsService>();
         services.AddScoped<IAccountsRepository, AccountRepository>();
         return services;
     }
@@ -16,6 +18,7 @@ public static class DI
     public static WebApplication MapAccountEndpoints(this WebApplication app)
     {
         app.MapCreateAccountEndPoint();
+        app.MapGetAccountsEndPoint();
         return app;
     }
 }

@@ -1,6 +1,34 @@
 @Nubulus.Backend.Api_HostAddress = http://localhost:5016
 
-GET {{Nubulus.Backend.Api_HostAddress}}/weatherforecast/
+### Get All Accounts (Primera pàgina, 10 elements)
+GET {{Nubulus.Backend.Api_HostAddress}}/api/v1/accounts?pageNumber=1&pageSize=10
 Accept: application/json
+
+###
+
+### Get All Accounts (Segona pàgina, 5 elements)
+GET {{Nubulus.Backend.Api_HostAddress}}/api/v1/accounts?pageNumber=2&pageSize=5
+Accept: application/json
+
+###
+
+### Get All Accounts (Sense paràmetres - valors per defecte)
+GET {{Nubulus.Backend.Api_HostAddress}}/api/v1/accounts
+Accept: application/json
+
+###
+
+### Create Account
+POST {{Nubulus.Backend.Api_HostAddress}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "name": "Test Company",
+  "fullName": "John Doe",
+  "email": "john.doe@testcompany.com",
+  "phone": "+34600123456",
+  "address": "Calle Test 123, Barcelona",
+  "numberId": "B12345678"
+}
 
 ###

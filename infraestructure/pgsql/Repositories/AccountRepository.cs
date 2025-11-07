@@ -80,7 +80,33 @@ public class AccountRepository : IAccountsRepository
 
     public Task<IQueryable<AccountEntity>> GetAllAccountsAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        // Retornar IQueryable de entidades de dominio
+        // NOTA: Este método tiene limitaciones con paginación debido a que EF Core
+        // no puede traducir la creación de Value Objects a SQL
+        // Se recomienda usar GetAllAccountsQueryable() para paginación
+        var accountEntities = _dbContext.Accounts
+            .AsNoTracking()
+            .AsEnumerable() // Materializar primero
+            .Select(a => new AccountEntity
+            {
+                Id = a.Id,
+                AccountKey = new Domain.ValueObjects.AccountKey(a.Key),
+                Name = a.Name,
+                Email = new Domain.ValueObjects.EmailAddress(a.Email),
+                Phone = a.Phone,
+                Status = a.Status == "A"
+                    ? Domain.ValueObjects.AccountStatus.Active
+                    : Domain.ValueObjects.AccountStatus.Inactive
+            })
+            .AsQueryable();
+
+        return Task.FromResult(accountEntities);
+    }
+
+    // Método auxiliar para paginación que retorna IQueryable<Account> (modelo de persistencia)
+    public IQueryable<Account> GetAllAccountsQueryable()
+    {
+        return _dbContext.Accounts.AsNoTracking();
     }
 
     public Task PauseAccountAsync(int accountId, CancellationToken cancellationToken = default)
