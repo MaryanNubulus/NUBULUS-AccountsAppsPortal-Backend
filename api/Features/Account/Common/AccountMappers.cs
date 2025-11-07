@@ -12,6 +12,7 @@ public static class AccountMappers
             Name = entity.Name,
             Email = entity.Email.Value,
             Phone = entity.Phone,
+            NumberId = entity.NumberId,
             Status = entity.Status.Value
         };
     }

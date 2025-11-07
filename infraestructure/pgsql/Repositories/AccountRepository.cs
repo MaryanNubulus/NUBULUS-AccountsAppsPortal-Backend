@@ -67,7 +67,34 @@ public class AccountRepository : IAccountsRepository
         await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+    public async Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Accounts.AsNoTracking();
 
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(a =>
+                a.Name.Contains(searchTerm) ||
+                a.Email.Contains(searchTerm) ||
+                a.Phone.Contains(searchTerm) ||
+                a.NumberId.Contains(searchTerm));
+        }
+
+        var accountEntities = query.Select(a => new AccountEntity
+        {
+            Id = a.Id,
+            AccountKey = new Domain.ValueObjects.AccountKey(a.Key),
+            Name = a.Name,
+            Email = new Domain.ValueObjects.EmailAddress(a.Email),
+            Phone = a.Phone,
+            NumberId = a.NumberId,
+            Status = a.Status == "A"
+                ? Domain.ValueObjects.AccountStatus.Active
+                : Domain.ValueObjects.AccountStatus.Inactive
+        });
+
+        return await Task.FromResult(accountEntities);
+    }
     public Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
@@ -77,38 +104,6 @@ public class AccountRepository : IAccountsRepository
     {
         throw new NotImplementedException();
     }
-
-    public Task<IQueryable<AccountEntity>> GetAllAccountsAsync(CancellationToken cancellationToken = default)
-    {
-        // Retornar IQueryable de entidades de dominio
-        // NOTA: Este método tiene limitaciones con paginación debido a que EF Core
-        // no puede traducir la creación de Value Objects a SQL
-        // Se recomienda usar GetAllAccountsQueryable() para paginación
-        var accountEntities = _dbContext.Accounts
-            .AsNoTracking()
-            .AsEnumerable() // Materializar primero
-            .Select(a => new AccountEntity
-            {
-                Id = a.Id,
-                AccountKey = new Domain.ValueObjects.AccountKey(a.Key),
-                Name = a.Name,
-                Email = new Domain.ValueObjects.EmailAddress(a.Email),
-                Phone = a.Phone,
-                Status = a.Status == "A"
-                    ? Domain.ValueObjects.AccountStatus.Active
-                    : Domain.ValueObjects.AccountStatus.Inactive
-            })
-            .AsQueryable();
-
-        return Task.FromResult(accountEntities);
-    }
-
-    // Método auxiliar para paginación que retorna IQueryable<Account> (modelo de persistencia)
-    public IQueryable<Account> GetAllAccountsQueryable()
-    {
-        return _dbContext.Accounts.AsNoTracking();
-    }
-
     public Task PauseAccountAsync(int accountId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();

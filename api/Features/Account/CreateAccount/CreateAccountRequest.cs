@@ -2,27 +2,20 @@ namespace Nubulus.Backend.Api.Features.Account;
 
 public class CreateAccountRequest
 {
-    public string Name { get; init; }
+    public const string Route = "/api/v1/accounts";
+    public string Name { get; init; } = string.Empty;
 
-    public string FullName { get; init; }
+    public string FullName { get; init; } = string.Empty;
 
-    public string Email { get; init; }
+    public string Email { get; init; } = string.Empty;
 
-    public string Phone { get; init; }
+    public string Phone { get; init; } = string.Empty;
 
-    public string Address { get; init; }
+    public string Address { get; init; } = string.Empty;
 
-    public string NumberId { get; init; }
+    public string NumberId { get; init; } = string.Empty;
 
-    public CreateAccountRequest()
-    {
-        Name = string.Empty;
-        FullName = string.Empty;
-        Email = string.Empty;
-        Phone = string.Empty;
-        Address = string.Empty;
-        NumberId = string.Empty;
-    }
+    public CreateAccountRequest() { }
 
     private CreateAccountRequest(
         string name,
@@ -38,35 +31,45 @@ public class CreateAccountRequest
         Phone = phone;
         Address = address;
         NumberId = numberId;
-        Validate();
     }
 
-    public CreateAccountRequest Validate()
+    public Dictionary<string, string[]> Validate()
     {
+        var errors = new Dictionary<string, string[]>();
+
+        // Validación Name
         if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2 || Name.Length > 100)
-            throw new ArgumentException("Name must be between 2 and 100 characters.");
+            errors["Name"] = new[] { "Name must be between 2 and 100 characters." };
 
+        // Validación Email
         if (string.IsNullOrWhiteSpace(Email) || Email.Length < 5 || Email.Length > 100)
-            throw new ArgumentException("Email must be between 5 and 100 characters.");
+            errors["Email"] = new[] { "Email must be between 5 and 100 characters." };
+        else
+        {
+            var emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(Email, emailPattern))
+                errors["Email"] = new[] { "Invalid email format." };
+        }
 
-        var emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(Email, emailPattern))
-            throw new ArgumentException("Invalid email format.");
-
+        // Validación Phone
         if (string.IsNullOrWhiteSpace(Phone) || Phone.Length < 10 || Phone.Length > 15)
-            throw new ArgumentException("Phone must be between 10 and 15 characters.");
+            errors["Phone"] = new[] { "Phone must be between 10 and 15 characters." };
+        else
+        {
+            var phonePattern = @"^\+?[0-9]{10,15}$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(Phone, phonePattern))
+                errors["Phone"] = new[] { "Invalid phone number format." };
+        }
 
-        var phonePattern = @"^\+?[0-9]{10,15}$";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(Phone, phonePattern))
-            throw new ArgumentException("Invalid phone number format.");
-
+        // Validación Address
         if (string.IsNullOrWhiteSpace(Address) || Address.Length < 5 || Address.Length > 200)
-            throw new ArgumentException("Address must be between 5 and 200 characters.");
+            errors["Address"] = new[] { "Address must be between 5 and 200 characters." };
 
+        // Validación NumberId
         if (string.IsNullOrWhiteSpace(NumberId) || NumberId.Length < 5 || NumberId.Length > 50)
-            throw new ArgumentException("NumberId must be between 5 and 50 characters.");
+            errors["NumberId"] = new[] { "NumberId must be between 5 and 50 characters." };
 
-        return this;
+        return errors;
     }
 
     public static CreateAccountRequest Create(

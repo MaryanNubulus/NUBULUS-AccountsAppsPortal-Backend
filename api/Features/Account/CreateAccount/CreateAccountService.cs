@@ -50,14 +50,11 @@ public class CreateAccountService
 
     public async Task<IGenericResponse<string>> ExecuteAsync(CreateAccountRequest request, CancellationToken cancellationToken)
     {
-        try { request.Validate(); }
-        catch (Exception ex)
+        if (request.Validate().Count > 0)
         {
-            return CreateAccountResponse.ValidationError(new Dictionary<string, string[]>
-            {
-                { "Request", new string[] { ex.Message } }
-            });
+            return CreateAccountResponse.ValidationError(request.Validate());
         }
+
         var existingAccount = await _accountsRepository.AccountInfoExistsAsync(request.Name, request.Email, request.Phone, request.NumberId, cancellationToken);
 
         if (existingAccount)

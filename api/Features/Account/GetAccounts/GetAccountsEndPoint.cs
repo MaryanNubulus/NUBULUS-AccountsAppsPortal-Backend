@@ -7,18 +7,8 @@ public static class GetAccountsEndPoint
 {
     public static WebApplication MapGetAccountsEndPoint(this WebApplication app)
     {
-        app.MapGet("/api/v1/accounts", async (
-            [FromQuery] int pageNumber,
-            [FromQuery] int pageSize,
-            GetAccountsService service,
-            CancellationToken cancellationToken) =>
+        app.MapGet(GetAccountsRequest.Route, async ([AsParameters] GetAccountsRequest request, GetAccountsService service, CancellationToken cancellationToken) =>
         {
-            var request = new PaginatedRequest
-            {
-                PageNumber = pageNumber > 0 ? pageNumber : 1,
-                PageSize = pageSize > 0 ? pageSize : 10
-            };
-
             var response = await service.ExecuteAsync(request, cancellationToken);
             return response.ResultType switch
             {
@@ -29,7 +19,8 @@ public static class GetAccountsEndPoint
             };
         })
         .WithName("GetAccounts")
-        .WithTags("Accounts");
+        .WithTags("Accounts")
+        .RequireAuthorization();
 
         return app;
     }
