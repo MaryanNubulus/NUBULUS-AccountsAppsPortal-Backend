@@ -1,11 +1,9 @@
-namespace Nubulus.Backend.Api.Features.Account;
+namespace Nubulus.Backend.Api.Features.Account.UpdateAccount;
 
-public class CreateAccountRequest
+public class UpdateAccountRequest
 {
-    public const string Route = "/api/v1/accounts";
+    public const string Route = "/api/v1/accounts/{accountKey}";
     public string Name { get; init; } = string.Empty;
-
-    public string FullName { get; init; } = string.Empty;
 
     public string Email { get; init; } = string.Empty;
 
@@ -15,18 +13,16 @@ public class CreateAccountRequest
 
     public string NumberId { get; init; } = string.Empty;
 
-    public CreateAccountRequest() { }
+    public UpdateAccountRequest() { }
 
-    private CreateAccountRequest(
+    private UpdateAccountRequest(
         string name,
-        string fullName,
         string email,
         string phone,
         string address,
         string numberId)
     {
         Name = name;
-        FullName = fullName;
         Email = email;
         Phone = phone;
         Address = address;

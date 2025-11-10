@@ -22,4 +22,19 @@ public static class AccountMappers
     {
         return entities.Select(e => e.ToDto()).ToList();
     }
+
+    public static AccountInfoDto ToInfoDto(this AccountEntity entity)
+    {
+        return new AccountInfoDto
+        {
+            Key = entity.AccountKey.Value,
+            Name = entity.Name,
+            FullName = entity.FullName,
+            Email = entity.Email.Value,
+            Phone = entity.Phone,
+            Address = entity.Address,
+            NumberId = entity.NumberId,
+            Status = entity.Status.Value
+        };
+    }
 }

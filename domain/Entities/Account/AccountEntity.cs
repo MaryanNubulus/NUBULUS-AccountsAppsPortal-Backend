@@ -10,6 +10,7 @@ public class AccountEntity
     public string FullName { get; set; } = default!;
     public EmailAddress Email { get; set; } = default!;
     public string Phone { get; set; } = default!;
+    public string Address { get; set; } = default!;
     public string NumberId { get; set; } = string.Empty;
     public AccountStatus Status { get; set; } = AccountStatus.Active;
 }

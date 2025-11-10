@@ -25,7 +25,11 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Id).HasColumnName("id").ValueGeneratedOnAdd();
+
+        // Configurar Key como clave alternativa única
+        builder.HasAlternateKey(a => a.Key);
         builder.Property(a => a.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
+
         builder.Property(a => a.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
         builder.Property(a => a.Email).HasColumnName("email").IsRequired().HasMaxLength(100);
         builder.Property(a => a.Phone).HasColumnName("phone").IsRequired().HasMaxLength(15);

@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Nubulus.Backend.Api.Features.Common;
 
-namespace Nubulus.Backend.Api.Features.Account.GetAccounts;
+namespace Nubulus.Backend.Api.Features.Account.GetAccount;
 
-public static class GetAccountsEndPoint
+public static class GetAccountEndPoint
 {
-    public static WebApplication MapGetAccountsEndPoint(this WebApplication app)
+    public static WebApplication MapGetAccountEndPoint(this WebApplication app)
     {
-        app.MapGet(GetAccountsRequest.Route, async ([AsParameters] GetAccountsRequest request, [FromServices] GetAccountsService service, CancellationToken cancellationToken) =>
+        app.MapGet(GetAccountRequest.Route, async ([AsParameters] GetAccountRequest request, [FromServices] GetAccountService service, CancellationToken cancellationToken) =>
         {
             var response = await service.ExecuteAsync(request, cancellationToken);
             return response.ResultType switch
@@ -18,7 +18,7 @@ public static class GetAccountsEndPoint
                 _ => Results.Problem(response.Message)
             };
         })
-        .WithName("GetAccounts")
+        .WithName("GetAccount")
         .WithTags("Accounts")
         .RequireAuthorization();
 

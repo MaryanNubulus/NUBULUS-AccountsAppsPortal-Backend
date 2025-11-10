@@ -6,12 +6,12 @@ namespace Nubulus.Backend.Infraestructure.PostgreSQL.Models;
 public class AccountUser
 {
     public int Id { get; set; }
-    public int AccountId { get; set; }
+    public string Key { get; set; } = string.Empty;
+    public string AccountKey { get; set; } = string.Empty;
     public Account Account { get; set; } = default!;
-    public int UserId { get; set; }
+    public string UserKey { get; set; } = string.Empty;
     public User User { get; set; } = default!;
-    public string Role { get; set; } = "User";
-    public string Shared { get; set; } = "N";
+    public string Creator { get; set; } = "N";
 }
 
 internal sealed class AccountUserConfiguration : IEntityTypeConfiguration<AccountUser>
@@ -22,20 +22,22 @@ internal sealed class AccountUserConfiguration : IEntityTypeConfiguration<Accoun
 
         builder.HasKey(au => au.Id);
         builder.Property(au => au.Id).HasColumnName("id").ValueGeneratedOnAdd();
-        builder.Property(au => au.AccountId).HasColumnName("account_id").IsRequired();
-        builder.Property(au => au.UserId).HasColumnName("user_id").IsRequired();
-        builder.Property(au => au.Role).HasColumnName("role").IsRequired().HasMaxLength(20);
-        builder.Property(au => au.Shared).HasColumnName("shared").IsRequired().HasMaxLength(1);
+        builder.HasAlternateKey(au => au.Key);
+        builder.Property(au => au.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
 
-        builder.HasKey(au => new { au.AccountId, au.UserId });
+        builder.Property(au => au.AccountKey).HasColumnName("account_key").IsRequired().HasMaxLength(36);
+        builder.Property(au => au.UserKey).HasColumnName("user_key").IsRequired().HasMaxLength(36);
+        builder.Property(au => au.Creator).HasColumnName("creator").IsRequired().HasMaxLength(1);
 
+        // Relaciones usando las claves
         builder.HasOne(au => au.Account)
             .WithMany(a => a.AccountUsers)
-            .HasForeignKey(au => au.AccountId);
+            .HasForeignKey(au => au.AccountKey)
+            .HasPrincipalKey(a => a.Key);
 
         builder.HasOne(au => au.User)
             .WithMany(u => u.AccountUsers)
-            .HasForeignKey(au => au.UserId);
-
+            .HasForeignKey(au => au.UserKey)
+            .HasPrincipalKey(u => u.Key);
     }
 }

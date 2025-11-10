@@ -15,16 +15,28 @@ public class AccountRepository : IAccountsRepository
         _dbContext = dbContext;
     }
 
-    public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default)
+    public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default, int? excludeAccountId = null)
     {
         var accountExists = await _dbContext.Accounts.AnyAsync(a =>
-            a.Name == name ||
-            a.Email == email ||
-            a.Phone == phone ||
-            a.NumberId == numberId, cancellationToken);
+            (a.Name == name ||
+             a.Email == email ||
+             a.Phone == phone ||
+             a.NumberId == numberId) &&
+            (!excludeAccountId.HasValue || a.Id != excludeAccountId.Value),
+            cancellationToken);
 
-        if (accountExists) { return true; }
-
+        if (accountExists)
+        {
+            return true;
+        }
+        if (excludeAccountId != null)
+        {
+            var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == excludeAccountId.Value, cancellationToken);
+            if (account != null && account.Email == email)
+            {
+                return false;
+            }
+        }
         var userExists = await _dbContext.Users.AnyAsync(u =>
             u.Email == email, cancellationToken);
 
@@ -51,25 +63,24 @@ public class AccountRepository : IAccountsRepository
             Email = command.Email.Value,
         };
 
-        await _dbContext.Accounts.AddAsync(account, cancellationToken);
-        await _dbContext.Users.AddAsync(user, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
         var accountUser = new AccountUser
         {
-            AccountId = account.Id,
-            UserId = user.Id,
-            Role = "Owner",
-            Shared = "N"
+            Key = Guid.NewGuid().ToString(),
+            AccountKey = account.Key,
+            UserKey = user.Key,
+            Creator = "Y"
         };
 
+        await _dbContext.Accounts.AddAsync(account, cancellationToken);
+        await _dbContext.Users.AddAsync(user, cancellationToken);
         await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Accounts.AsNoTracking();
+        var query = _dbContext.Accounts.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -87,9 +98,9 @@ public class AccountRepository : IAccountsRepository
     {
 
         var joinquery = from a in _dbContext.Accounts
-                        join au in _dbContext.AccountUsers on a.Id equals au.AccountId
-                        where au.Role == "Owner"
-                        join u in _dbContext.Users on au.UserId equals u.Id
+                        join au in _dbContext.AccountUsers on a.Key equals au.AccountKey
+                        where au.Creator == "Y"
+                        join u in _dbContext.Users on au.UserKey equals u.Key
                         select new { Account = a, AccountUser = au, User = u };
 
         var query = joinquery.OrderBy(a => a.Account.Id).AsNoTracking();
@@ -123,15 +134,59 @@ public class AccountRepository : IAccountsRepository
 
         return results.AsQueryable();
     }
-    public Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default)
+
+    public async Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var joinquery = from a in _dbContext.Accounts
+                        join au in _dbContext.AccountUsers on a.Key equals au.AccountKey
+                        where au.Creator == "Y" && a.Id == accountId
+                        join u in _dbContext.Users on au.UserKey equals u.Key
+                        select new { Account = a, AccountUser = au, User = u };
+
+        var result = await joinquery.AsNoTracking()
+            .Select(a => new AccountEntity
+            {
+                Id = a.Account.Id,
+                AccountKey = new AccountKey(a.Account.Key),
+                Name = a.Account.Name,
+                FullName = a.User.Name,
+                Email = new EmailAddress(a.Account.Email),
+                Phone = a.Account.Phone,
+                Address = a.Account.Address,
+                NumberId = a.Account.NumberId,
+                Status = AccountStatus.Parse(a.Account.Status)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return result!;
     }
 
-    public Task<AccountEntity> GetAccountByKeyAsync(string accountKey, CancellationToken cancellationToken = default)
+    public async Task<AccountEntity> GetAccountByKeyAsync(string accountKey, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var joinquery = from a in _dbContext.Accounts
+                        join au in _dbContext.AccountUsers on a.Key equals au.AccountKey
+                        where au.Creator == "Y" && a.Key == accountKey
+                        join u in _dbContext.Users on au.UserKey equals u.Key
+                        select new { Account = a, AccountUser = au, User = u };
+
+        var result = await joinquery.AsNoTracking()
+            .Select(a => new AccountEntity
+            {
+                Id = a.Account.Id,
+                AccountKey = new AccountKey(a.Account.Key),
+                Name = a.Account.Name,
+                FullName = a.User.Name,
+                Email = new EmailAddress(a.Account.Email),
+                Phone = a.Account.Phone,
+                Address = a.Account.Address,
+                NumberId = a.Account.NumberId,
+                Status = AccountStatus.Parse(a.Account.Status)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return result!;
     }
+
     public Task PauseAccountAsync(int accountId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
@@ -142,8 +197,21 @@ public class AccountRepository : IAccountsRepository
         throw new NotImplementedException();
     }
 
-    public Task UpdateAccountAsync(AccountEntity command, CancellationToken cancellationToken = default)
+    public async Task UpdateAccountAsync(UpdateAccount command, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (command == null)
+            throw new ArgumentNullException(nameof(command));
+
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == command.Id, cancellationToken);
+        if (account == null)
+            throw new InvalidOperationException("Account not found.");
+
+        account.Name = command.Name;
+        account.Email = command.Email.Value;
+        account.Phone = command.Phone;
+        account.Address = command.Address;
+        account.NumberId = command.NumberId;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
