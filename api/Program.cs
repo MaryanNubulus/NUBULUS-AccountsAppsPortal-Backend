@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Nubulus.Backend.Api.Features;
-using Nubulus.Backend.Infraestructure.PostgreSQL;
+using Nubulus.Backend.Infraestructure.Pgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddPgsqlInfrastructure(builder.Configuration);
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -49,12 +52,6 @@ builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
-
-builder.Services.AddDbContext<PostgreDBContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("PostgreSQLConnection"),
-        b => b.MigrationsAssembly("nubulus.backend.api")
-    ));
 
 builder.Services.AddApplicationFeature();
 

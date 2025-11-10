@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Nubulus.Backend.Infraestructure.Pgsql;
@@ -11,9 +12,11 @@ using Nubulus.Backend.Infraestructure.Pgsql;
 namespace nubulus.backend.api.Migrations
 {
     [DbContext(typeof(PostgreDBContext))]
-    partial class PostgreDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251110100041_AddDateRegister")]
+    partial class AddDateRegister
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,7 +125,7 @@ namespace nubulus.backend.api.Migrations
                     b.ToTable("accounts_users", (string)null);
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.AuditRecord", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.DateRegister", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -174,7 +177,7 @@ namespace nubulus.backend.api.Migrations
 
                     b.HasAlternateKey("Key");
 
-                    b.ToTable("audit_records", (string)null);
+                    b.ToTable("date_registers", (string)null);
                 });
 
             modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.User", b =>

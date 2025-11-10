@@ -4,7 +4,9 @@ namespace Nubulus.Domain.Entities.Account;
 
 public class CreateAccount
 {
-    public string Key { get; private set; } = default!;
+    public string AccountKey { get; private set; } = default!;
+    public string UserKey { get; private set; } = default!;
+    public string AccountUserKey { get; private set; } = default!;
     public string Name { get; private set; } = default!;
     public string FullName { get; private set; } = default!;
     public EmailAddress Email { get; private set; } = default!;
@@ -12,9 +14,11 @@ public class CreateAccount
     public string Address { get; private set; } = default!;
     public string NumberId { get; private set; } = default!;
 
-    public CreateAccount(string key, string name, string fullName, EmailAddress email, string phone, string address, string numberId)
+    public CreateAccount(string accountKey, string userKey, string accountUserKey, string name, string fullName, EmailAddress email, string phone, string address, string numberId)
     {
-        Key = key;
+        AccountKey = accountKey;
+        UserKey = userKey;
+        AccountUserKey = accountUserKey;
         Name = name;
         FullName = fullName;
         Email = email;
@@ -33,11 +37,22 @@ internal sealed class CreateAccountValidator
         if (command == null)
             throw new ArgumentNullException(nameof(command), "CreateAccount command cannot be null.");
 
-        // Validación Key
-        if (string.IsNullOrWhiteSpace(command.Key))
-            throw new ArgumentException("Account key is required.", nameof(command.Key));
-        if (command.Key.Length > 36)
-            throw new ArgumentException("Account key must not exceed 36 characters.", nameof(command.Key));
+        // Validación  AccountKey
+        if (string.IsNullOrWhiteSpace(command.AccountKey))
+            throw new ArgumentException("Account key is required.", nameof(command.AccountKey));
+        if (command.AccountKey.Length > 36)
+            throw new ArgumentException("Account key must not exceed 36 characters.", nameof(command.AccountKey));
+        // Validación UserKey
+        if (string.IsNullOrWhiteSpace(command.UserKey))
+            throw new ArgumentException("User key is required.", nameof(command.UserKey));
+        if (command.UserKey.Length > 36)
+            throw new ArgumentException("User key must not exceed 36 characters.", nameof(command.UserKey));
+
+        // Validación AccountUserKey
+        if (string.IsNullOrWhiteSpace(command.AccountUserKey))
+            throw new ArgumentException("Account user key is required.", nameof(command.AccountUserKey));
+        if (command.AccountUserKey.Length > 36)
+            throw new ArgumentException("Account user key must not exceed 36 characters.", nameof(command.AccountUserKey));
 
         // Validación Name
         if (string.IsNullOrWhiteSpace(command.Name) || command.Name.Length < 2 || command.Name.Length > 100)

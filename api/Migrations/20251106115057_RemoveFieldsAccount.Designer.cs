@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Nubulus.Backend.Infraestructure.PostgreSQL;
+using Nubulus.Backend.Infraestructure.Pgsql;
 
 #nullable disable
 
@@ -24,7 +24,7 @@ namespace nubulus.backend.api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.Account", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.Account", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,7 +74,7 @@ namespace nubulus.backend.api.Migrations
                     b.ToTable("accounts", (string)null);
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.AccountUser", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.AccountUser", b =>
                 {
                     b.Property<int>("AccountId")
                         .HasColumnType("integer")
@@ -98,7 +98,7 @@ namespace nubulus.backend.api.Migrations
                     b.ToTable("accounts_users", (string)null);
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.User", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -130,15 +130,15 @@ namespace nubulus.backend.api.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.AccountUser", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.AccountUser", b =>
                 {
-                    b.HasOne("Nubulus.Backend.Infraestructure.PostgreSQL.Models.Account", "Account")
+                    b.HasOne("Nubulus.Backend.Infraestructure.Pgsql.Models.Account", "Account")
                         .WithMany("AccountUsers")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Nubulus.Backend.Infraestructure.PostgreSQL.Models.User", "User")
+                    b.HasOne("Nubulus.Backend.Infraestructure.Pgsql.Models.User", "User")
                         .WithMany("AccountUsers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -149,12 +149,12 @@ namespace nubulus.backend.api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.Account", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.Account", b =>
                 {
                     b.Navigation("AccountUsers");
                 });
 
-            modelBuilder.Entity("Nubulus.Backend.Infraestructure.PostgreSQL.Models.User", b =>
+            modelBuilder.Entity("Nubulus.Backend.Infraestructure.Pgsql.Models.User", b =>
                 {
                     b.Navigation("AccountUsers");
                 });

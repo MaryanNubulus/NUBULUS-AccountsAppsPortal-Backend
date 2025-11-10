@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Nubulus.Backend.Api.Features.Account.GetAccount;
 using Nubulus.Backend.Api.Features.Common;
 
@@ -7,9 +8,11 @@ public static class CreateAccountEndPoint
 {
     public static WebApplication MapCreateAccountEndPoint(this WebApplication app)
     {
-        app.MapPost(CreateAccountRequest.Route, async (CreateAccountRequest request, CreateAccountService service, CancellationToken cancellationToken) =>
+        app.MapPost(CreateAccountRequest.Route, async (HttpContext context, [FromBody] CreateAccountRequest request, [FromServices] CreateAccountService service, CancellationToken cancellationToken) =>
         {
-            var response = await service.ExecuteAsync(request, cancellationToken);
+            var userContext = context.User.Identities.FirstOrDefault()!.Name!;
+
+            var response = await service.ExecuteAsync(request, userContext, cancellationToken);
             return response.ResultType switch
             {
                 ResultType.Ok => Results.Created(GetAccountRequest.Route.Replace("{accountKey}", response.Data), null),

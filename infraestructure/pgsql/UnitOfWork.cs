@@ -1,6 +1,5 @@
 
 using Nubulus.Domain.Abstractions;
-using Nubulus.Backend.Infraestructure.PostgreSQL;
 
 namespace Nubulus.Backend.Infraestructure.Pgsql;
 

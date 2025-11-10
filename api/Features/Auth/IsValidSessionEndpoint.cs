@@ -1,4 +1,4 @@
-namespace Nubulus.Backend.Api.Application.Features.Auth;
+namespace Nubulus.Backend.Api.Features.Auth;
 
 public static class IsValidSessionEndpoint
 {

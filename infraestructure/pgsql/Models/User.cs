@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Nubulus.Backend.Infraestructure.PostgreSQL.Models;
+namespace Nubulus.Backend.Infraestructure.Pgsql.Models;
 
 public class User
 {

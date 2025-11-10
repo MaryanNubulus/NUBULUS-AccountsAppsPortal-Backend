@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Nubulus.Backend.Api.Features.Account.Common;
 using Nubulus.Backend.Api.Features.Common;
 using Nubulus.Domain.Abstractions;
@@ -29,11 +28,6 @@ public class GetAccountsService
             return new GetAccountsResponse(ResultType.Ok, null, data);
         }
 
-        public static GetAccountsResponse NotFound(string message)
-        {
-            return new GetAccountsResponse(ResultType.NotFound, message, null);
-        }
-
         public static GetAccountsResponse Error(string message)
         {
             return new GetAccountsResponse(ResultType.Error, message, null);
@@ -55,7 +49,12 @@ public class GetAccountsService
 
             if (totalCount == 0)
             {
-                return GetAccountsResponse.NotFound("No accounts found.");
+                return GetAccountsResponse.Success(new PaginatedResponse<AccountDto>(
+                    totalCount: 0,
+                    pageNumber: request.PageNumber ?? 1,
+                    pageSize: request.PageSize ?? 10,
+                    items: new List<AccountDto>()
+                ));
             }
 
             var accountsQuery = await _accountsRepository.GetAccountsAsync(request.SearchTerm, request.PageNumber, request.PageSize, cancellationToken);

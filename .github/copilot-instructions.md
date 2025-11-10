@@ -589,7 +589,7 @@ public class AccountRepository : IAccountsRepository
 ```csharp
 using Microsoft.EntityFrameworkCore;
 using Nubulus.Backend.Api.Features;
-using Nubulus.Backend.Infraestructure.PostgreSQL;
+using Nubulus.Backend.Infraestructure.Pgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 

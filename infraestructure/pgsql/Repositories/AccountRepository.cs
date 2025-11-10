@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Nubulus.Backend.Infraestructure.PostgreSQL;
-using Nubulus.Backend.Infraestructure.PostgreSQL.Models;
+using Nubulus.Backend.Infraestructure.Pgsql.Models;
 using Nubulus.Domain.Abstractions;
 using Nubulus.Domain.Entities.Account;
 using Nubulus.Domain.ValueObjects;
@@ -48,7 +47,7 @@ public class AccountRepository : IAccountsRepository
         var account = new Account
         {
             Name = command.Name,
-            Key = command.Key,
+            Key = command.AccountKey,
             Email = command.Email.Value,
             Phone = command.Phone,
             Address = command.Address,
@@ -58,14 +57,14 @@ public class AccountRepository : IAccountsRepository
 
         var user = new User
         {
-            Key = Guid.NewGuid().ToString(),
+            Key = command.UserKey,
             Name = command.FullName,
             Email = command.Email.Value,
         };
 
         var accountUser = new AccountUser
         {
-            Key = Guid.NewGuid().ToString(),
+            Key = command.AccountUserKey,
             AccountKey = account.Key,
             UserKey = user.Key,
             Creator = "Y"
