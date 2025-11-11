@@ -10,9 +10,7 @@ public static class CreateAccountEndPoint
     {
         app.MapPost(CreateAccountRequest.Route, async (HttpContext context, [FromBody] CreateAccountRequest request, [FromServices] CreateAccountService service, CancellationToken cancellationToken) =>
         {
-            var userContext = context.User.Identities.FirstOrDefault()!.Name!;
-
-            var response = await service.ExecuteAsync(request, userContext, cancellationToken);
+            var response = await service.ExecuteAsync(request, context.User.Identities.FirstOrDefault()!.Name!, cancellationToken);
             return response.ResultType switch
             {
                 ResultType.Ok => Results.Created(GetAccountRequest.Route.Replace("{accountKey}", response.Data), null),

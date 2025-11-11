@@ -3,7 +3,6 @@ using System.Text.Json;
 using Nubulus.Backend.Api.Features.Common;
 using Nubulus.Backend.Infraestructure.Pgsql.Models;
 using Nubulus.Domain.Abstractions;
-using Nubulus.Domain.Entities.AuditRecord;
 using Nubulus.Domain.ValueObjects;
 
 namespace Nubulus.Backend.Api.Features.Account;
@@ -46,14 +45,12 @@ public class CreateAccountService
     }
 
     private readonly IAccountsRepository _accountsRepository;
-    private readonly IAuditRecordRepository _auditRecordRepository;
-    public CreateAccountService(IAccountsRepository accountsRepository, IAuditRecordRepository auditRecordRepository)
+    public CreateAccountService(IAccountsRepository accountsRepository)
     {
         _accountsRepository = accountsRepository;
-        _auditRecordRepository = auditRecordRepository;
     }
 
-    public async Task<IGenericResponse<string>> ExecuteAsync(CreateAccountRequest request, string userContext, CancellationToken cancellationToken)
+    public async Task<IGenericResponse<string>> ExecuteAsync(CreateAccountRequest request, string userContextEmail, CancellationToken cancellationToken)
     {
         if (request.Validate().Count > 0)
         {
@@ -83,19 +80,7 @@ public class CreateAccountService
                 request.NumberId
             );
 
-            await _accountsRepository.CreateAccountAsync(command, cancellationToken);
-
-
-            var commandJson = JsonSerializer.Serialize(command);
-            var commandBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(commandJson));
-
-            var accountAuditRecord = new CreateAuditRecord($"{nameof(Account)}s".ToLower(), accountKey, RecordType.Create, userContext, commandBase64);
-            var userAuditRecord = new CreateAuditRecord($"{nameof(User)}s".ToLower(), userKey, RecordType.Create, userContext, commandBase64);
-            var accountUserAuditRecord = new CreateAuditRecord($"{nameof(AccountUser)}s".ToLower(), accountUserKey, RecordType.Create, userContext, commandBase64);
-
-            await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
-            await _auditRecordRepository.CreateAuditRecordAsync(userAuditRecord, cancellationToken);
-            await _auditRecordRepository.CreateAuditRecordAsync(accountUserAuditRecord, cancellationToken);
+            await _accountsRepository.CreateAccountAsync(command, new EmailAddress(userContextEmail), cancellationToken);
         }
         catch (Exception ex)
         {

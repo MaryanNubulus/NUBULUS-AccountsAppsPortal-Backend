@@ -11,8 +11,7 @@ public static class DI
     public static IServiceCollection AddApplicationFeature(this IServiceCollection services)
     {
         services.AddAccountFeature();
-
-        services.AddTransient<IAuditRecordRepository, AuditRecordRepository>();
+        services.AddTransient<AuditRecordRepository>();
         return services;
     }
 

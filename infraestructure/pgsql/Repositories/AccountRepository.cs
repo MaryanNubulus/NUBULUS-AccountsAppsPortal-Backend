@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Nubulus.Backend.Infraestructure.Pgsql.Mappers;
 using Nubulus.Backend.Infraestructure.Pgsql.Models;
 using Nubulus.Domain.Abstractions;
 using Nubulus.Domain.Entities.Account;
@@ -9,9 +10,11 @@ namespace Nubulus.Backend.Infraestructure.Pgsql.Repositories;
 public class AccountRepository : IAccountsRepository
 {
     private readonly PostgreDBContext _dbContext;
-    public AccountRepository(PostgreDBContext dbContext)
+    private readonly AuditRecordRepository _auditRecordRepository;
+    public AccountRepository(PostgreDBContext dbContext, AuditRecordRepository auditRecordRepository)
     {
         _dbContext = dbContext;
+        _auditRecordRepository = auditRecordRepository;
     }
 
     public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default, int? excludeAccountId = null)
@@ -42,7 +45,7 @@ public class AccountRepository : IAccountsRepository
         return userExists;
     }
 
-    public async Task CreateAccountAsync(CreateAccount command, CancellationToken cancellationToken = default)
+    public async Task CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
     {
         var account = new Account
         {
@@ -54,6 +57,8 @@ public class AccountRepository : IAccountsRepository
             NumberId = command.NumberId,
             Status = "A"
         };
+        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+        await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
 
         var user = new User
         {
@@ -61,6 +66,8 @@ public class AccountRepository : IAccountsRepository
             Name = command.FullName,
             Email = command.Email.Value,
         };
+        var userAuditRecord = user.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+        await _auditRecordRepository.CreateAuditRecordAsync(userAuditRecord, cancellationToken);
 
         var accountUser = new AccountUser
         {
@@ -69,6 +76,8 @@ public class AccountRepository : IAccountsRepository
             UserKey = user.Key,
             Creator = "Y"
         };
+        var accountUserAuditRecord = accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+        await _auditRecordRepository.CreateAuditRecordAsync(accountUserAuditRecord, cancellationToken);
 
         await _dbContext.Accounts.AddAsync(account, cancellationToken);
         await _dbContext.Users.AddAsync(user, cancellationToken);

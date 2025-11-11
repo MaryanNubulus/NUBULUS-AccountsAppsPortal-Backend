@@ -1,35 +1,32 @@
 using System.Text.RegularExpressions;
 
-namespace Nubulus.Domain.ValueObjects
+namespace Nubulus.Domain.ValueObjects;
+
+public class EmailAddress
 {
-    public class EmailAddress
+    public string Value { get; set; }
+
+    public EmailAddress(string address)
     {
-        public string Value { get; set; }
-
-        public EmailAddress(string address)
+        Value = address;
+    }
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Value) || !Value.Contains("@"))
         {
-            Value = address;
+            throw new ArgumentException("Invalid email address.");
         }
-        public void Validate()
+        if (Value.Length > 254)
         {
-            if (string.IsNullOrWhiteSpace(Value) || !Value.Contains("@"))
-            {
-                throw new ArgumentException("Invalid email address.");
-            }
-            if (Value.Length > 254)
-            {
-                throw new ArgumentException("Email address is too long.");
-            }
-
-            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-
-            bool isValid = Regex.IsMatch(Value, pattern, RegexOptions.IgnoreCase);
-            if (!isValid)
-            {
-                throw new ArgumentException("Email address format is invalid.");
-            }
+            throw new ArgumentException("Email address is too long.");
         }
 
-        // Additional methods and properties can be added here
+        string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+
+        bool isValid = Regex.IsMatch(Value, pattern, RegexOptions.IgnoreCase);
+        if (!isValid)
+        {
+            throw new ArgumentException("Email address format is invalid.");
+        }
     }
 }

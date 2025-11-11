@@ -1,4 +1,5 @@
 using Nubulus.Domain.Entities.Account;
+using Nubulus.Domain.ValueObjects;
 
 namespace Nubulus.Domain.Abstractions;
 
@@ -8,7 +9,7 @@ public interface IAccountsRepository
     Task<AccountEntity> GetAccountByIdAsync(int accountId, CancellationToken cancellationToken = default);
     Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default);
     Task<IQueryable<AccountEntity>> GetAccountsAsync(string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default);
-    Task CreateAccountAsync(CreateAccount command, CancellationToken cancellationToken = default);
+    Task CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
     Task UpdateAccountAsync(UpdateAccount command, CancellationToken cancellationToken = default);
     Task PauseAccountAsync(int accountId, CancellationToken cancellationToken = default);
     Task ResumeAccountAsync(int accountId, CancellationToken cancellationToken = default);
