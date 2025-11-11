@@ -51,7 +51,7 @@ public class UpdateAccountService
         _accountsRepository = accountsRepository;
     }
 
-    public async Task<IGenericResponse<string>> ExecuteAsync(string accountKey, UpdateAccountRequest request, CancellationToken cancellationToken)
+    public async Task<IGenericResponse<string>> ExecuteAsync(string accountKey, UpdateAccountRequest request, string currentUserEmail, CancellationToken cancellationToken)
     {
         if (request.Validate().Count > 0)
         {
@@ -81,7 +81,7 @@ public class UpdateAccountService
                 request.NumberId
             );
 
-            await _accountsRepository.UpdateAccountAsync(command, cancellationToken);
+            await _accountsRepository.UpdateAccountAsync(command, new EmailAddress(currentUserEmail), cancellationToken);
         }
         catch (Exception ex)
         {

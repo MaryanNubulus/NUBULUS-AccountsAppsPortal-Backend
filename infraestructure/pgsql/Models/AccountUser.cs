@@ -12,6 +12,7 @@ public class AccountUser
     public string UserKey { get; set; } = string.Empty;
     public User User { get; set; } = default!;
     public string Creator { get; set; } = "N";
+    public string Status { get; set; } = "A";
 }
 
 internal sealed class AccountUserConfiguration : IEntityTypeConfiguration<AccountUser>
@@ -28,6 +29,7 @@ internal sealed class AccountUserConfiguration : IEntityTypeConfiguration<Accoun
         builder.Property(au => au.AccountKey).HasColumnName("account_key").IsRequired().HasMaxLength(36);
         builder.Property(au => au.UserKey).HasColumnName("user_key").IsRequired().HasMaxLength(36);
         builder.Property(au => au.Creator).HasColumnName("creator").IsRequired().HasMaxLength(1);
+        builder.Property(au => au.Status).HasColumnName("status").IsRequired().HasMaxLength(1);
 
         // Relaciones usando las claves
         builder.HasOne(au => au.Account)

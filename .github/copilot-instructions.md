@@ -7,7 +7,7 @@ Este proyecto es una API backend construida con ASP.NET Core 8 utilizando Minima
 - **Domain** (`domain/`): Entidades, Value Objects y abstracciones core
 
   - **Entidades principales**: `AccountEntity`, `User`
-  - **Value Objects**: `AccountKey`, `EmailAddress`, `AccountStatus`
+  - **Value Objects**: `AccountKey`, `EmailAddress`, `Status`
   - **Abstracciones**: `IAccountsRepository`, `IUnitOfWork`, `IDomainEvent`
   - **Comandos de dominio**: `CreateAccount` (con validadores internos)
 
@@ -341,7 +341,7 @@ public class AccountEntity
     public string Name { get; set; } = default!;
     public EmailAddress Email { get; set; } = default!;
     public string Phone { get; set; } = default!;
-    public AccountStatus Status { get; set; } = AccountStatus.Active;
+    public Status Status { get; set; } = Status.Active;
 }
 ```
 
@@ -434,15 +434,15 @@ public class EmailAddress
     }
 }
 
-// domain/ValueObjects/AccountStatus.cs (Enum pattern)
-public class AccountStatus
+// domain/ValueObjects/Status.cs (Enum pattern)
+public class Status
 {
     public string Value { get; private set; }
 
-    private AccountStatus(string value) { Value = value; }
+    private Status(string value) { Value = value; }
 
-    public static AccountStatus Active => new AccountStatus("Active");
-    public static AccountStatus Inactive => new AccountStatus("Inactive");
+    public static Status Active => new Status("Active");
+    public static Status Inactive => new Status("Inactive");
 }
 ```
 

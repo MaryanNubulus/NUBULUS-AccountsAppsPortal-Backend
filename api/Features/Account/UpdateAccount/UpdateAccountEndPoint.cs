@@ -7,9 +7,9 @@ public static class UpdateAccountEndPoint
 {
     public static WebApplication MapUpdateAccountEndPoint(this WebApplication app)
     {
-        app.MapPut(UpdateAccountRequest.Route, async ([FromRoute] string accountKey, [FromBody] UpdateAccountRequest request, [FromServices] UpdateAccountService service, CancellationToken cancellationToken) =>
+        app.MapPut(UpdateAccountRequest.Route, async (HttpContext httpContext, [FromRoute] string accountKey, [FromBody] UpdateAccountRequest request, [FromServices] UpdateAccountService service, CancellationToken cancellationToken) =>
         {
-            var response = await service.ExecuteAsync(accountKey, request, cancellationToken);
+            var response = await service.ExecuteAsync(accountKey, request, httpContext.User.Identity!.Name!, cancellationToken);
             return response.ResultType switch
             {
                 ResultType.Ok => Results.Ok(),

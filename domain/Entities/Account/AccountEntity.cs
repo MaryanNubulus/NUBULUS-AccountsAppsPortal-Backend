@@ -12,5 +12,5 @@ public class AccountEntity
     public string Phone { get; set; } = default!;
     public string Address { get; set; } = default!;
     public string NumberId { get; set; } = string.Empty;
-    public AccountStatus Status { get; set; } = AccountStatus.Active;
+    public Status Status { get; set; } = Status.Active;
 }

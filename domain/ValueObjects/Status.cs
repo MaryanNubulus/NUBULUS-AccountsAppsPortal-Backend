@@ -1,18 +1,18 @@
 namespace Nubulus.Domain.ValueObjects;
 
-public class AccountStatus
+public class Status
 {
     public string Value { get; private set; }
 
-    private AccountStatus(string value)
+    private Status(string value)
     {
         Value = value;
     }
 
-    public static AccountStatus Active => new AccountStatus("Active");
-    public static AccountStatus Inactive => new AccountStatus("Inactive");
+    public static Status Active => new Status("A");
+    public static Status Inactive => new Status("I");
 
-    public static AccountStatus Parse(string status)
+    public static Status Parse(string status)
     {
         return status switch
         {
@@ -21,5 +21,6 @@ public class AccountStatus
             _ => throw new ArgumentException($"Invalid account status: {status}")
         };
     }
+
 
 }
