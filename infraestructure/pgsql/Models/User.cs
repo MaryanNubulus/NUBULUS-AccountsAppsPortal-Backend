@@ -19,11 +19,10 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
 
-        builder.HasKey(u => u.Id);
+        builder.HasIndex(u => u.Id);
         builder.Property(u => u.Id).HasColumnName("id").ValueGeneratedOnAdd();
 
-        // Configurar Key como clave alternativa única
-        builder.HasAlternateKey(u => u.Key);
+        builder.HasKey(u => u.Key);
         builder.Property(u => u.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
 
         builder.Property(u => u.Name).HasColumnName("name").IsRequired().HasMaxLength(100);

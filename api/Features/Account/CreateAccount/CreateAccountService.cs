@@ -9,7 +9,7 @@ namespace Nubulus.Backend.Api.Features.Account;
 
 public class CreateAccountService
 {
-    internal class CreateAccountResponse : IGenericResponse<string>
+    internal class CreateAccountResponse : IGenericResponse<int?>
     {
         public ResultType ResultType { get; set; } = ResultType.None;
 
@@ -17,16 +17,16 @@ public class CreateAccountService
 
         public Dictionary<string, string[]>? ValidationErrors { get; set; } = null;
 
-        public string? Data { get; set; } = null;
+        public int? Data { get; set; } = null;
 
-        private CreateAccountResponse(ResultType resultType, string? message, Dictionary<string, string[]>? validationErrors, string? data)
+        private CreateAccountResponse(ResultType resultType, string? message, Dictionary<string, string[]>? validationErrors, int? data)
         {
             ResultType = resultType;
             Message = message;
             ValidationErrors = validationErrors;
             Data = data;
         }
-        public static CreateAccountResponse Success(string data)
+        public static CreateAccountResponse Success(int data)
         {
             return new CreateAccountResponse(ResultType.Ok, null, null, data);
         }
@@ -45,19 +45,22 @@ public class CreateAccountService
     }
 
     private readonly IAccountsRepository _accountsRepository;
-    public CreateAccountService(IAccountsRepository accountsRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public CreateAccountService(IAccountsRepository accountsRepository, IUnitOfWork unitOfWork)
     {
         _accountsRepository = accountsRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<IGenericResponse<string>> ExecuteAsync(CreateAccountRequest request, string userContextEmail, CancellationToken cancellationToken)
+    public async Task<IGenericResponse<int?>> ExecuteAsync(CreateAccountRequest request, string userContextEmail, CancellationToken cancellationToken)
     {
         if (request.Validate().Count > 0)
         {
             return CreateAccountResponse.ValidationError(request.Validate());
         }
 
-        var existingAccount = await _accountsRepository.AccountInfoExistsAsync(request.Name, request.Email, request.Phone, request.NumberId, cancellationToken);
+        var existingAccount = await _unitOfWork.Accounts.AccountInfoExistsAsync(request.Name, request.Email, request.Phone, request.NumberId, cancellationToken);
 
         if (existingAccount)
         {
@@ -66,10 +69,11 @@ public class CreateAccountService
         var accountKey = Guid.NewGuid().ToString();
         var userKey = Guid.NewGuid().ToString();
         var accountUserKey = Guid.NewGuid().ToString();
+        AccountId accountId = new AccountId(0);
         try
         {
             var command = new Domain.Entities.Account.CreateAccount(
-                accountKey,
+                new AccountKey(accountKey),
                 userKey,
                 accountUserKey,
                 request.Name,
@@ -80,13 +84,13 @@ public class CreateAccountService
                 request.NumberId
             );
 
-            await _accountsRepository.CreateAccountAsync(command, new EmailAddress(userContextEmail), cancellationToken);
+            accountId = await _unitOfWork.Accounts.CreateAccountAsync(command, new EmailAddress(userContextEmail), cancellationToken);
         }
         catch (Exception ex)
         {
             return CreateAccountResponse.Error($"An error occurred while creating the account: {ex.Message}");
         }
 
-        return CreateAccountResponse.Success(accountKey);
+        return CreateAccountResponse.Success(accountId.Value);
     }
 }

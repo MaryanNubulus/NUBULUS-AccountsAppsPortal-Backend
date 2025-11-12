@@ -4,7 +4,7 @@ namespace Nubulus.Domain.Entities.Account;
 
 public class AccountEntity
 {
-    public int Id { get; set; }
+    public AccountId AccountId { get; set; } = default!;
     public AccountKey AccountKey { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string FullName { get; set; } = default!;

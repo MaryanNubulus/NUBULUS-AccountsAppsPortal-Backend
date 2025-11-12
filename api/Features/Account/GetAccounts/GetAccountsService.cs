@@ -34,18 +34,18 @@ public class GetAccountsService
         }
     }
 
-    private readonly IAccountsRepository _accountsRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetAccountsService(IAccountsRepository accountsRepository)
+    public GetAccountsService(IUnitOfWork unitOfWork)
     {
-        _accountsRepository = accountsRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IGenericResponse<PaginatedResponse<AccountDto>>> ExecuteAsync(GetAccountsRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var totalCount = await _accountsRepository.CountAccountsAsync(request.SearchTerm, cancellationToken);
+            var totalCount = await _unitOfWork.Accounts.CountAccountsAsync(request.SearchTerm, cancellationToken);
 
             if (totalCount == 0)
             {
@@ -57,7 +57,7 @@ public class GetAccountsService
                 ));
             }
 
-            var accountsQuery = await _accountsRepository.GetAccountsAsync(request.SearchTerm, request.PageNumber, request.PageSize, cancellationToken);
+            var accountsQuery = await _unitOfWork.Accounts.GetAccountsAsync(request.SearchTerm, request.PageNumber, request.PageSize, cancellationToken);
 
             var accountDtos = accountsQuery.ToList().ToDto();
 

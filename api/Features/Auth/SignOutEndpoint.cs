@@ -16,17 +16,12 @@ public static class SignOutEndpoint
                 returnUrl = "http://localhost:5173/";
             }
 
-            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var isAuth = context.User?.Identity?.IsAuthenticated ?? false;
-            if (!isAuth)
-            {
-                context.Response.Redirect(returnUrl);
-                return;
-            }
-
             var props = new AuthenticationProperties { RedirectUri = returnUrl };
+
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme, props);
+
+            return Results.Redirect(returnUrl);
         })
         .WithName("SignOut")
         .WithTags("Auth")

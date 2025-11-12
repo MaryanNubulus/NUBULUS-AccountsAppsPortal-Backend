@@ -10,82 +10,29 @@ namespace Nubulus.Backend.Infraestructure.Pgsql.Repositories;
 public class AccountRepository : IAccountsRepository
 {
     private readonly PostgreDBContext _dbContext;
-    private readonly AuditRecordRepository _auditRecordRepository;
-    public AccountRepository(PostgreDBContext dbContext, AuditRecordRepository auditRecordRepository)
+
+    public AccountRepository(PostgreDBContext dbContext)
     {
         _dbContext = dbContext;
-        _auditRecordRepository = auditRecordRepository;
     }
 
-    public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default, int? excludeAccountId = null)
+    public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default, AccountId? excludeAccountId = null)
     {
         var accountExists = await _dbContext.Accounts.AnyAsync(a =>
             (a.Name == name ||
              a.Email == email ||
              a.Phone == phone ||
              a.NumberId == numberId) &&
-            (!excludeAccountId.HasValue || a.Id != excludeAccountId.Value),
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
             cancellationToken);
 
         if (accountExists)
-        {
             return true;
-        }
-        if (excludeAccountId != null)
-        {
-            var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == excludeAccountId.Value, cancellationToken);
-            if (account != null && account.Email == email)
-            {
-                return false;
-            }
-        }
-        var userExists = await _dbContext.Users.AnyAsync(u =>
-            u.Email == email, cancellationToken);
+        var userExists = await _dbContext.Users.AnyAsync(u => u.Email == email, cancellationToken);
 
         return userExists;
     }
 
-    public async Task CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
-    {
-        var account = new Account
-        {
-            Name = command.Name,
-            Key = command.AccountKey,
-            Email = command.Email.Value,
-            Phone = command.Phone,
-            Address = command.Address,
-            NumberId = command.NumberId,
-            Status = "A"
-        };
-        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
-        await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
-
-        var user = new User
-        {
-            Key = command.UserKey,
-            Name = command.FullName,
-            Email = command.Email.Value,
-        };
-        var userAuditRecord = user.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
-        await _auditRecordRepository.CreateAuditRecordAsync(userAuditRecord, cancellationToken);
-
-        var accountUser = new AccountUser
-        {
-            Key = command.AccountUserKey,
-            AccountKey = account.Key,
-            UserKey = user.Key,
-            Creator = "Y",
-            Status = "A"
-        };
-        var accountUserAuditRecord = accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
-        await _auditRecordRepository.CreateAuditRecordAsync(accountUserAuditRecord, cancellationToken);
-
-        await _dbContext.Accounts.AddAsync(account, cancellationToken);
-        await _dbContext.Users.AddAsync(user, cancellationToken);
-        await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-    }
 
     public async Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
     {
@@ -131,7 +78,7 @@ public class AccountRepository : IAccountsRepository
 
         var results = await query.Select(a => new AccountEntity
         {
-            Id = a.Account.Id,
+            AccountId = new AccountId(a.Account.Id),
             AccountKey = new AccountKey(a.Account.Key),
             Name = a.Account.Name,
             FullName = a.User.Name,
@@ -155,7 +102,7 @@ public class AccountRepository : IAccountsRepository
         var result = await joinquery.AsNoTracking()
             .Select(a => new AccountEntity
             {
-                Id = a.Account.Id,
+                AccountId = new AccountId(a.Account.Id),
                 AccountKey = new AccountKey(a.Account.Key),
                 Name = a.Account.Name,
                 FullName = a.User.Name,
@@ -170,18 +117,18 @@ public class AccountRepository : IAccountsRepository
         return result!;
     }
 
-    public async Task<AccountEntity> GetAccountByKeyAsync(string accountKey, CancellationToken cancellationToken = default)
+    public async Task<AccountEntity> GetAccountByKeyAsync(AccountKey accountKey, CancellationToken cancellationToken = default)
     {
         var joinquery = from a in _dbContext.Accounts
                         join au in _dbContext.AccountUsers on a.Key equals au.AccountKey
-                        where au.Creator == "Y" && a.Key == accountKey
+                        where au.Creator == "Y" && a.Key == accountKey.Value
                         join u in _dbContext.Users on au.UserKey equals u.Key
                         select new { Account = a, AccountUser = au, User = u };
 
         var result = await joinquery.AsNoTracking()
             .Select(a => new AccountEntity
             {
-                Id = a.Account.Id,
+                AccountId = new AccountId(a.Account.Id),
                 AccountKey = new AccountKey(a.Account.Key),
                 Name = a.Account.Name,
                 FullName = a.User.Name,
@@ -194,6 +141,51 @@ public class AccountRepository : IAccountsRepository
             .FirstOrDefaultAsync(cancellationToken);
 
         return result!;
+    }
+
+    public async Task<AccountId> CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
+    {
+        var account = new Account
+        {
+            Name = command.Name,
+            Key = command.AccountKey.Value,
+            Email = command.Email.Value,
+            Phone = command.Phone,
+            Address = command.Address,
+            NumberId = command.NumberId,
+            Status = "A"
+        };
+        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+
+
+        var user = new User
+        {
+            Key = command.UserKey,
+            Name = command.FullName,
+            Email = command.Email.Value,
+        };
+        var userAuditRecord = user.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+
+
+        var accountUser = new AccountUser
+        {
+            Key = command.AccountUserKey,
+            AccountKey = account.Key,
+            UserKey = user.Key,
+            Creator = "Y",
+            Status = "A"
+        };
+        var accountUserAuditRecord = accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+
+
+        await _dbContext.Accounts.AddAsync(account, cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(accountAuditRecord, cancellationToken);
+        await _dbContext.Users.AddAsync(user, cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(userAuditRecord, cancellationToken);
+        await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(accountUserAuditRecord, cancellationToken);
+
+        return new AccountId(account.Id);
     }
 
     public async Task PauseAccountAsync(AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
@@ -210,13 +202,10 @@ public class AccountRepository : IAccountsRepository
         foreach (var accountUser in accountUsers)
         {
             accountUser.Status = "I";
-            accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Pause);
-            await _auditRecordRepository.CreateAuditRecordAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
-        }
+            await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
 
-        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Pause);
-        await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        await _dbContext.AuditRecords.AddAsync(account.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
     }
 
     public async Task ResumeAccountAsync(AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
@@ -231,12 +220,9 @@ public class AccountRepository : IAccountsRepository
         foreach (var accountUser in accountUsers)
         {
             accountUser.Status = "A";
-            accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Resume);
-            await _auditRecordRepository.CreateAuditRecordAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
+            await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
         }
-        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Resume);
-        await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(account.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
     }
 
     public async Task UpdateAccountAsync(UpdateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
@@ -244,7 +230,7 @@ public class AccountRepository : IAccountsRepository
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == command.Id, cancellationToken);
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == command.AccountId.Value, cancellationToken);
         if (account == null)
             throw new InvalidOperationException("Account not found.");
 
@@ -254,9 +240,6 @@ public class AccountRepository : IAccountsRepository
         account.Address = command.Address;
         account.NumberId = command.NumberId;
 
-        var accountAuditRecord = account.ToAuditRecord(currentUserEmail.Value, RecordType.Update);
-        await _auditRecordRepository.CreateAuditRecordAsync(accountAuditRecord, cancellationToken);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(account.ToAuditRecord(currentUserEmail.Value, RecordType.Update), cancellationToken);
     }
 }

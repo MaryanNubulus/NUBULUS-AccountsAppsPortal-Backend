@@ -1,6 +1,7 @@
 using Nubulus.Backend.Api.Features.Account.CreateAccount;
 using Nubulus.Backend.Api.Features.Account.GetAccount;
 using Nubulus.Backend.Api.Features.Account.GetAccounts;
+using Nubulus.Backend.Api.Features.Account.PauseResumeAccount;
 using Nubulus.Backend.Api.Features.Account.UpdateAccount;
 using Nubulus.Backend.Infraestructure.Pgsql.Repositories;
 using Nubulus.Domain.Abstractions;
@@ -15,7 +16,7 @@ public static class DI
         services.AddTransient<GetAccountsService>();
         services.AddTransient<GetAccountService>();
         services.AddTransient<UpdateAccountService>();
-        services.AddTransient<IAccountsRepository, AccountRepository>();
+        services.AddTransient<PauseResumeAccountService>();
         return services;
     }
 
@@ -25,6 +26,7 @@ public static class DI
         app.MapGetAccountsEndPoint();
         app.MapGetAccountEndPoint();
         app.MapUpdateAccountEndPoint();
+        app.MapPauseResumeAccountEndPoint();
         return app;
     }
 }

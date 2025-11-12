@@ -28,17 +28,17 @@ internal sealed class AuditRecordConfiguration : IEntityTypeConfiguration<AuditR
     {
         builder.ToTable("audit_records");
 
-        builder.HasKey(dr => dr.Id);
-        builder.Property(dr => dr.Id).HasColumnName("id").ValueGeneratedOnAdd();
+        builder.HasIndex(ar => ar.Id);
+        builder.Property(ar => ar.Id).HasColumnName("id").ValueGeneratedOnAdd();
 
-        builder.HasAlternateKey(dr => dr.Key);
-        builder.Property(dr => dr.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
+        builder.HasKey(ar => ar.Key);
+        builder.Property(ar => ar.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
 
-        builder.Property(dr => dr.TableName).HasColumnName("table_name").IsRequired().HasMaxLength(100);
-        builder.Property(dr => dr.RecordKey).HasColumnName("record_key").IsRequired().HasMaxLength(36);
-        builder.Property(dr => dr.RecordType).HasColumnName("record_type").IsRequired().HasMaxLength(1);
-        builder.Property(dr => dr.User).HasColumnName("user").IsRequired().HasMaxLength(264);
-        builder.Property(dr => dr.DateTime).HasColumnName("date_time").IsRequired();
-        builder.Property(dr => dr.DataB64).HasColumnName("data_b64").IsRequired();
+        builder.Property(ar => ar.TableName).HasColumnName("table_name").IsRequired().HasMaxLength(100);
+        builder.Property(ar => ar.RecordKey).HasColumnName("record_key").IsRequired().HasMaxLength(36);
+        builder.Property(ar => ar.RecordType).HasColumnName("record_type").IsRequired().HasMaxLength(1);
+        builder.Property(ar => ar.User).HasColumnName("user").IsRequired().HasMaxLength(264);
+        builder.Property(ar => ar.DateTime).HasColumnName("date_time").IsRequired();
+        builder.Property(ar => ar.DataB64).HasColumnName("data_b64").IsRequired();
     }
 }

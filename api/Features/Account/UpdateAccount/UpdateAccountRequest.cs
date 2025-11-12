@@ -2,7 +2,7 @@ namespace Nubulus.Backend.Api.Features.Account.UpdateAccount;
 
 public class UpdateAccountRequest
 {
-    public const string Route = "/api/v1/accounts/{accountKey}";
+    public const string Route = "/api/v1/accounts/{accountId}";
     public string Name { get; init; } = string.Empty;
 
     public string Email { get; init; } = string.Empty;

@@ -21,9 +21,10 @@ internal sealed class AccountUserConfiguration : IEntityTypeConfiguration<Accoun
     {
         builder.ToTable("accounts_users");
 
-        builder.HasKey(au => au.Id);
+        builder.HasIndex(au => au.Id);
         builder.Property(au => au.Id).HasColumnName("id").ValueGeneratedOnAdd();
-        builder.HasAlternateKey(au => au.Key);
+
+        builder.HasKey(au => au.Key);
         builder.Property(au => au.Key).HasColumnName("key").IsRequired().HasMaxLength(36);
 
         builder.Property(au => au.AccountKey).HasColumnName("account_key").IsRequired().HasMaxLength(36);

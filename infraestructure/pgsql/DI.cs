@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Nubulus.Backend.Infraestructure.Pgsql.Repositories;
+using Nubulus.Domain.Abstractions;
 
 namespace Nubulus.Backend.Infraestructure.Pgsql;
 
@@ -13,6 +15,10 @@ public static class DI
             configuration.GetConnectionString("PostgreSQLConnection"),
             b => b.MigrationsAssembly("nubulus.backend.api")
         ));
+
+        //Implementación de UnitOfWork
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAccountsRepository, AccountRepository>();
 
         return services;
     }

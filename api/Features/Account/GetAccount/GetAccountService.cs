@@ -1,6 +1,7 @@
 using Nubulus.Backend.Api.Features.Account.Common;
 using Nubulus.Backend.Api.Features.Common;
 using Nubulus.Domain.Abstractions;
+using Nubulus.Domain.ValueObjects;
 
 namespace Nubulus.Backend.Api.Features.Account.GetAccount;
 
@@ -39,22 +40,22 @@ public class GetAccountService
         }
     }
 
-    private readonly IAccountsRepository _accountsRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetAccountService(IAccountsRepository accountsRepository)
+    public GetAccountService(IUnitOfWork unitOfWork)
     {
-        _accountsRepository = accountsRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IGenericResponse<AccountInfoDto>> ExecuteAsync(GetAccountRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await _accountsRepository.GetAccountByKeyAsync(request.AccountKey, cancellationToken);
+            var account = await _unitOfWork.Accounts.GetAccountByIdAsync(new AccountId(request.AccountId), cancellationToken);
 
             if (account == null)
             {
-                return GetAccountResponse.NotFound($"Account with key '{request.AccountKey}' not found.");
+                return GetAccountResponse.NotFound($"Account with ID '{request.AccountId}' not found.");
             }
 
             return GetAccountResponse.Success(account.ToInfoDto());

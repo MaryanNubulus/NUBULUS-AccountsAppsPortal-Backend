@@ -4,16 +4,16 @@ namespace Nubulus.Domain.Entities.Account;
 
 public class UpdateAccount
 {
-    public int Id { get; private set; } = default!;
+    public AccountId AccountId { get; private set; } = default!;
     public string Name { get; private set; } = default!;
     public EmailAddress Email { get; private set; } = default!;
     public string Phone { get; private set; } = default!;
     public string Address { get; private set; } = default!;
     public string NumberId { get; private set; } = default!;
 
-    public UpdateAccount(int id, string name, EmailAddress email, string phone, string address, string numberId)
+    public UpdateAccount(AccountId accountId, string name, EmailAddress email, string phone, string address, string numberId)
     {
-        Id = id;
+        AccountId = accountId;
         Name = name;
         Email = email;
         Phone = phone;
@@ -32,8 +32,8 @@ internal sealed class UpdateAccountValidator
             throw new ArgumentNullException(nameof(command), "UpdateAccount command cannot be null.");
 
         // Validación Id
-        if (command.Id <= 0)
-            throw new ArgumentException("Invalid account ID.", nameof(command.Id));
+        if (command.AccountId.Value <= 0)
+            throw new ArgumentException("Invalid account ID.", nameof(command.AccountId));
 
         // Validación Name
         if (string.IsNullOrWhiteSpace(command.Name) || command.Name.Length < 2 || command.Name.Length > 100)

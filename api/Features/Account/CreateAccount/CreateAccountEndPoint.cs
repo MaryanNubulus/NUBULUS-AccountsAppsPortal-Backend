@@ -13,7 +13,7 @@ public static class CreateAccountEndPoint
             var response = await service.ExecuteAsync(request, context.User.Identities.FirstOrDefault()!.Name!, cancellationToken);
             return response.ResultType switch
             {
-                ResultType.Ok => Results.Created(GetAccountRequest.Route.Replace("{accountKey}", response.Data), null),
+                ResultType.Ok => Results.Created(GetAccountRequest.Route.Replace("{accountId}", response.Data.ToString()), null),
                 ResultType.Conflict => Results.Conflict(response.Message),
                 ResultType.Problems => Results.ValidationProblem(response.ValidationErrors!),
                 _ => Results.Problem(response.Message)

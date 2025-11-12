@@ -6,7 +6,7 @@ namespace Nubulus.Backend.Api.Features.Account.PauseResumeAccount;
 
 public class PauseResumeAccountService
 {
-    internal class PauseResumeAccountResponse : IGenericResponse<string>
+    internal class PauseResumeAccountResponse : IGenericResponse<int?>
     {
         public ResultType ResultType { get; set; } = ResultType.None;
 
@@ -14,10 +14,10 @@ public class PauseResumeAccountService
 
         public Dictionary<string, string[]>? ValidationErrors { get; set; } = null;
 
-        public string? Data { get; set; } = null;
+        public int? Data { get; set; } = null;
 
         private PauseResumeAccountResponse(ResultType resultType, string? message,
-                                    string? data)
+                                    int? data)
         {
             ResultType = resultType;
             Message = message;
@@ -25,7 +25,7 @@ public class PauseResumeAccountService
             ValidationErrors = null;
         }
 
-        public static PauseResumeAccountResponse Success(string data)
+        public static PauseResumeAccountResponse Success(int data)
         {
             return new PauseResumeAccountResponse(ResultType.Ok, null, data);
         }
@@ -39,33 +39,33 @@ public class PauseResumeAccountService
         }
     }
 
-    private readonly IAccountsRepository _accountsRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public PauseResumeAccountService(IAccountsRepository accountsRepository)
+    public PauseResumeAccountService(IUnitOfWork unitOfWork)
     {
-        _accountsRepository = accountsRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<IGenericResponse<string>> ExecuteAsync(PauseResumeAccountRequest request, bool Pause, string currentUserEmail, CancellationToken cancellationToken)
+    public async Task<IGenericResponse<int?>> ExecuteAsync(PauseResumeAccountRequest request, bool Pause, string currentUserEmail, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await _accountsRepository.GetAccountByKeyAsync(request.AccountKey, cancellationToken);
+            var account = await _unitOfWork.Accounts.GetAccountByIdAsync(new AccountId(request.AccountId), cancellationToken);
 
             if (account == null)
             {
-                return PauseResumeAccountResponse.NotFound($"Account with key '{request.AccountKey}' not found.");
+                return PauseResumeAccountResponse.NotFound($"Account with ID '{request.AccountId}' not found.");
             }
 
             if (Pause)
             {
-                await _accountsRepository.PauseAccountAsync(new AccountId(account.Id), new EmailAddress(currentUserEmail), cancellationToken);
-                return PauseResumeAccountResponse.Success($"Account with key '{request.AccountKey}' has been paused.");
+                await _unitOfWork.Accounts.PauseAccountAsync(account.AccountId, new EmailAddress(currentUserEmail), cancellationToken);
+                return PauseResumeAccountResponse.Success(request.AccountId);
             }
             else
             {
-                await _accountsRepository.ResumeAccountAsync(new AccountId(account.Id), new EmailAddress(currentUserEmail), cancellationToken);
-                return PauseResumeAccountResponse.Success($"Account with key '{request.AccountKey}' has been resumed.");
+                await _unitOfWork.Accounts.ResumeAccountAsync(account.AccountId, new EmailAddress(currentUserEmail), cancellationToken);
+                return PauseResumeAccountResponse.Success(request.AccountId);
             }
         }
         catch (Exception ex)

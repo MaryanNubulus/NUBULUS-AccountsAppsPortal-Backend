@@ -4,7 +4,7 @@ namespace Nubulus.Domain.Entities.Account;
 
 public class CreateAccount
 {
-    public string AccountKey { get; private set; } = default!;
+    public AccountKey AccountKey { get; private set; } = default!;
     public string UserKey { get; private set; } = default!;
     public string AccountUserKey { get; private set; } = default!;
     public string Name { get; private set; } = default!;
@@ -14,7 +14,7 @@ public class CreateAccount
     public string Address { get; private set; } = default!;
     public string NumberId { get; private set; } = default!;
 
-    public CreateAccount(string accountKey, string userKey, string accountUserKey, string name, string fullName, EmailAddress email, string phone, string address, string numberId)
+    public CreateAccount(AccountKey accountKey, string userKey, string accountUserKey, string name, string fullName, EmailAddress email, string phone, string address, string numberId)
     {
         AccountKey = accountKey;
         UserKey = userKey;
@@ -38,9 +38,9 @@ internal sealed class CreateAccountValidator
             throw new ArgumentNullException(nameof(command), "CreateAccount command cannot be null.");
 
         // Validación  AccountKey
-        if (string.IsNullOrWhiteSpace(command.AccountKey))
+        if (string.IsNullOrWhiteSpace(command.AccountKey.Value))
             throw new ArgumentException("Account key is required.", nameof(command.AccountKey));
-        if (command.AccountKey.Length > 36)
+        if (command.AccountKey.Value.Length > 36)
             throw new ArgumentException("Account key must not exceed 36 characters.", nameof(command.AccountKey));
         // Validación UserKey
         if (string.IsNullOrWhiteSpace(command.UserKey))

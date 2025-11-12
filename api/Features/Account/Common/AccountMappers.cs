@@ -8,7 +8,7 @@ public static class AccountMappers
     {
         return new AccountDto
         {
-            Key = entity.AccountKey.Value,
+            AccountId = entity.AccountId.Value,
             Name = entity.Name,
             FullName = entity.FullName,
             Email = entity.Email.Value,
@@ -27,7 +27,7 @@ public static class AccountMappers
     {
         return new AccountInfoDto
         {
-            Key = entity.AccountKey.Value,
+            AccountId = entity.AccountId.Value,
             Name = entity.Name,
             FullName = entity.FullName,
             Email = entity.Email.Value,
