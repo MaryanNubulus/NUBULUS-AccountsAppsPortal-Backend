@@ -18,21 +18,58 @@ public class AccountRepository : IAccountsRepository
 
     public async Task<bool> AccountInfoExistsAsync(string name, string email, string phone, string numberId, CancellationToken cancellationToken = default, AccountId? excludeAccountId = null)
     {
-        var accountExists = await _dbContext.Accounts.AnyAsync(a =>
-            (a.Name == name ||
-             a.Email == email ||
-             a.Phone == phone ||
-             a.NumberId == numberId) &&
+        var nameExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.Name == name &&
             (excludeAccountId == null || a.Id != excludeAccountId.Value),
             cancellationToken);
 
-        if (accountExists)
+        if (nameExists)
             return true;
-        var userExists = await _dbContext.Users.AnyAsync(u => u.Email == email, cancellationToken);
 
-        return userExists;
+        var emailInAccountExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.Email == email &&
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
+            cancellationToken);
+
+        if (emailInAccountExists)
+            return true;
+
+        if (excludeAccountId != null)
+        {
+            var emailInUsersExists = await _dbContext.Users.AnyAsync(u =>
+                u.Email == email &&
+                !_dbContext.AccountUsers.Any(au =>
+                    au.UserKey == u.Key &&
+                    au.AccountKey == _dbContext.Accounts.First(a => a.Id == excludeAccountId.Value).Key &&
+                    au.Creator == "Y"),
+                cancellationToken);
+
+            if (emailInUsersExists)
+                return true;
+        }
+        else
+        {
+            var emailInUsersExists = await _dbContext.Users.AnyAsync(u => u.Email == email, cancellationToken);
+
+            if (emailInUsersExists)
+                return true;
+        }
+
+        var phoneExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.Phone == phone &&
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
+            cancellationToken);
+
+        if (phoneExists)
+            return true;
+
+        var numberIdExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.NumberId == numberId &&
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
+            cancellationToken);
+
+        return numberIdExists;
     }
-
 
     public async Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
     {
@@ -143,7 +180,7 @@ public class AccountRepository : IAccountsRepository
         return result!;
     }
 
-    public async Task<AccountId> CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
+    public async Task CreateAccountAsync(CreateAccount command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
     {
         var account = new Account
         {
@@ -184,8 +221,6 @@ public class AccountRepository : IAccountsRepository
         await _dbContext.AuditRecords.AddAsync(userAuditRecord, cancellationToken);
         await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
         await _dbContext.AuditRecords.AddAsync(accountUserAuditRecord, cancellationToken);
-
-        return new AccountId(account.Id);
     }
 
     public async Task PauseAccountAsync(AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)

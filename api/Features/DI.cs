@@ -1,7 +1,6 @@
 using Nubulus.Backend.Api.Features.Auth;
 using Nubulus.Backend.Api.Features.Account;
 using Nubulus.Backend.Api.Features.Employees;
-using Nubulus.Domain.Abstractions;
 
 namespace Nubulus.Backend.Api.Features;
 

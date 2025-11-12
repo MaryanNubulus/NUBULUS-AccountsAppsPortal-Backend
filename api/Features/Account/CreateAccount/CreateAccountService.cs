@@ -1,7 +1,4 @@
-using System.Text;
-using System.Text.Json;
 using Nubulus.Backend.Api.Features.Common;
-using Nubulus.Backend.Infraestructure.Pgsql.Models;
 using Nubulus.Domain.Abstractions;
 using Nubulus.Domain.ValueObjects;
 
@@ -26,9 +23,9 @@ public class CreateAccountService
             ValidationErrors = validationErrors;
             Data = data;
         }
-        public static CreateAccountResponse Success(int data)
+        public static CreateAccountResponse Success()
         {
-            return new CreateAccountResponse(ResultType.Ok, null, null, data);
+            return new CreateAccountResponse(ResultType.Ok, null, null, null);
         }
         public static CreateAccountResponse DataExists(string message)
         {
@@ -44,12 +41,11 @@ public class CreateAccountService
         }
     }
 
-    private readonly IAccountsRepository _accountsRepository;
+
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateAccountService(IAccountsRepository accountsRepository, IUnitOfWork unitOfWork)
+    public CreateAccountService(IUnitOfWork unitOfWork)
     {
-        _accountsRepository = accountsRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -69,7 +65,7 @@ public class CreateAccountService
         var accountKey = Guid.NewGuid().ToString();
         var userKey = Guid.NewGuid().ToString();
         var accountUserKey = Guid.NewGuid().ToString();
-        AccountId accountId = new AccountId(0);
+
         try
         {
             var command = new Domain.Entities.Account.CreateAccount(
@@ -84,13 +80,14 @@ public class CreateAccountService
                 request.NumberId
             );
 
-            accountId = await _unitOfWork.Accounts.CreateAccountAsync(command, new EmailAddress(userContextEmail), cancellationToken);
+            await _unitOfWork.Accounts.CreateAccountAsync(command, new EmailAddress(userContextEmail), cancellationToken);
+            await _unitOfWork.CompleteAsync(cancellationToken);
+
         }
         catch (Exception ex)
         {
             return CreateAccountResponse.Error($"An error occurred while creating the account: {ex.Message}");
         }
-
-        return CreateAccountResponse.Success(accountId.Value);
+        return CreateAccountResponse.Success();
     }
 }

@@ -3,8 +3,6 @@ using Nubulus.Backend.Api.Features.Account.GetAccount;
 using Nubulus.Backend.Api.Features.Account.GetAccounts;
 using Nubulus.Backend.Api.Features.Account.PauseResumeAccount;
 using Nubulus.Backend.Api.Features.Account.UpdateAccount;
-using Nubulus.Backend.Infraestructure.Pgsql.Repositories;
-using Nubulus.Domain.Abstractions;
 
 namespace Nubulus.Backend.Api.Features.Account;
 

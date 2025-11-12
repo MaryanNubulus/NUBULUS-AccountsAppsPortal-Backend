@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Nubulus.Backend.Api.Features;
 using Nubulus.Backend.Infraestructure.Pgsql;

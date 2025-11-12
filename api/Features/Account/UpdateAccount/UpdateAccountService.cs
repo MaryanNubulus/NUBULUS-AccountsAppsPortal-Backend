@@ -82,6 +82,7 @@ public class UpdateAccountService
             );
 
             await _unitOfWork.Accounts.UpdateAccountAsync(command, new EmailAddress(currentUserEmail), cancellationToken);
+            await _unitOfWork.CompleteAsync(cancellationToken);
         }
         catch (Exception ex)
         {

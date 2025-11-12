@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Nubulus.Backend.Api.Features.Account.GetAccount;
 using Nubulus.Backend.Api.Features.Common;
 
 namespace Nubulus.Backend.Api.Features.Account.CreateAccount;
@@ -13,7 +12,7 @@ public static class CreateAccountEndPoint
             var response = await service.ExecuteAsync(request, context.User.Identities.FirstOrDefault()!.Name!, cancellationToken);
             return response.ResultType switch
             {
-                ResultType.Ok => Results.Created(GetAccountRequest.Route.Replace("{accountId}", response.Data.ToString()), null),
+                ResultType.Ok => Results.Created(),
                 ResultType.Conflict => Results.Conflict(response.Message),
                 ResultType.Problems => Results.ValidationProblem(response.ValidationErrors!),
                 _ => Results.Problem(response.Message)

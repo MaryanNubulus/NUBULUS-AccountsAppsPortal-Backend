@@ -27,8 +27,6 @@ public class UnitOfWork : IUnitOfWork
         {
             var result = await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-
             return result;
         }
         catch

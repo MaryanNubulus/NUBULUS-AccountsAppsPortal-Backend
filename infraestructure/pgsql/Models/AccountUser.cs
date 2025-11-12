@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,8 +9,12 @@ public class AccountUser
     public int Id { get; set; }
     public string Key { get; set; } = string.Empty;
     public string AccountKey { get; set; } = string.Empty;
+
+    [JsonIgnore]
     public Account Account { get; set; } = default!;
     public string UserKey { get; set; } = string.Empty;
+
+    [JsonIgnore]
     public User User { get; set; } = default!;
     public string Creator { get; set; } = "N";
     public string Status { get; set; } = "A";

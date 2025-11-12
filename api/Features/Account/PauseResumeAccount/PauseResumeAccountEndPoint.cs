@@ -7,7 +7,7 @@ public static class PauseResumeAccountEndPoint
 {
     public static WebApplication MapPauseResumeAccountEndPoint(this WebApplication app)
     {
-        app.MapPost(PauseResumeAccountRequest.RoutePause, async (HttpContext httpContext, [AsParameters] PauseResumeAccountRequest request, [FromServices] PauseResumeAccountService service, CancellationToken cancellationToken) =>
+        app.MapPatch(PauseResumeAccountRequest.RoutePause, async (HttpContext httpContext, [AsParameters] PauseResumeAccountRequest request, [FromServices] PauseResumeAccountService service, CancellationToken cancellationToken) =>
         {
             var response = await service.ExecuteAsync(request, true, httpContext.User.Identity!.Name!, cancellationToken);
             return response.ResultType switch
@@ -21,7 +21,7 @@ public static class PauseResumeAccountEndPoint
         .WithTags("Accounts")
         .RequireAuthorization();
 
-        app.MapPost(PauseResumeAccountRequest.RouteResume, async (HttpContext httpContext, [AsParameters] PauseResumeAccountRequest request, [FromServices] PauseResumeAccountService service, CancellationToken cancellationToken) =>
+        app.MapPatch(PauseResumeAccountRequest.RouteResume, async (HttpContext httpContext, [AsParameters] PauseResumeAccountRequest request, [FromServices] PauseResumeAccountService service, CancellationToken cancellationToken) =>
         {
             var response = await service.ExecuteAsync(request, false, httpContext.User.Identity!.Name!, cancellationToken);
             return response.ResultType switch

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,6 +15,8 @@ public class Account
     public string Address { get; set; } = string.Empty;
     public string NumberId { get; set; } = string.Empty;
     public string Status { get; set; } = "A";
+
+    [JsonIgnore]
     public ICollection<AccountUser> AccountUsers { get; set; } = new List<AccountUser>();
 }
 

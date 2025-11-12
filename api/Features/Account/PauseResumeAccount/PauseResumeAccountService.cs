@@ -60,11 +60,13 @@ public class PauseResumeAccountService
             if (Pause)
             {
                 await _unitOfWork.Accounts.PauseAccountAsync(account.AccountId, new EmailAddress(currentUserEmail), cancellationToken);
+                await _unitOfWork.CompleteAsync(cancellationToken);
                 return PauseResumeAccountResponse.Success(request.AccountId);
             }
             else
             {
                 await _unitOfWork.Accounts.ResumeAccountAsync(account.AccountId, new EmailAddress(currentUserEmail), cancellationToken);
+                await _unitOfWork.CompleteAsync(cancellationToken);
                 return PauseResumeAccountResponse.Success(request.AccountId);
             }
         }
