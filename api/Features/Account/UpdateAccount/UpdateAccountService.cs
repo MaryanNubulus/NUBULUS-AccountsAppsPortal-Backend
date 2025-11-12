@@ -64,7 +64,7 @@ public class UpdateAccountService
             return UpdateAccountResponse.NotFound($"Account with ID {accountId} not found.");
         }
 
-        var existingAccount = await _unitOfWork.Accounts.AccountInfoExistsAsync(request.Name, request.Email, request.Phone, request.NumberId, cancellationToken, account.AccountId);
+        var existingAccount = await _unitOfWork.Accounts.AccountInfoExistsAsync(request.Name, string.Empty, request.Phone, request.NumberId, cancellationToken, account.AccountId);
         if (existingAccount)
         {
             return UpdateAccountResponse.DataExists("An account with the provided Name, Email, Phone, or NumberId already exists.");
@@ -75,7 +75,6 @@ public class UpdateAccountService
             var command = new Domain.Entities.Account.UpdateAccount(
                 account.AccountId,
                 request.Name,
-                new EmailAddress(request.Email),
                 request.Phone,
                 request.Address,
                 request.NumberId

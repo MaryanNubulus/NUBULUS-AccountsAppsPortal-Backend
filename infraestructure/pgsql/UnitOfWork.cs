@@ -7,12 +7,16 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly PostgreDBContext _context;
     private readonly IAccountsRepository _accountsRepository;
-    public IAccountsRepository Accounts => _accountsRepository;
+    private readonly IUsersRepository _usersRepository;
 
-    public UnitOfWork(PostgreDBContext context, IAccountsRepository accountsRepository)
+    public IAccountsRepository Accounts => _accountsRepository;
+    public IUsersRepository Users => _usersRepository;
+
+    public UnitOfWork(PostgreDBContext context, IAccountsRepository accountsRepository, IUsersRepository usersRepository)
     {
         _context = context;
         _accountsRepository = accountsRepository;
+        _usersRepository = usersRepository;
     }
 
     public void Dispose()

@@ -19,6 +19,7 @@ public static class DI
         //Implementación de UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAccountsRepository, AccountRepository>();
+        services.AddScoped<IUsersRepository, UserRepository>();
 
         return services;
     }

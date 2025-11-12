@@ -270,7 +270,6 @@ public class AccountRepository : IAccountsRepository
             throw new InvalidOperationException("Account not found.");
 
         account.Name = command.Name;
-        account.Email = command.Email.Value;
         account.Phone = command.Phone;
         account.Address = command.Address;
         account.NumberId = command.NumberId;
