@@ -15,4 +15,12 @@ public interface IUsersRepository
     Task UpdateUserAsync(UpdateUser command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
     Task PauseUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
     Task ResumeUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
+
+    // Mètodes per compartir usuaris
+    Task<int> CountUsersToShareAsync(AccountId accountId, string? searchTerm, CancellationToken cancellationToken = default);
+    Task<IQueryable<UserEntity>> GetUsersToShareAsync(AccountId accountId, string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default);
+    Task<int> CountSharedUsersAsync(AccountId accountId, string? searchTerm, CancellationToken cancellationToken = default);
+    Task<IQueryable<UserEntity>> GetSharedUsersAsync(AccountId accountId, string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default);
+    Task ShareUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
+    Task UnshareUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
 }

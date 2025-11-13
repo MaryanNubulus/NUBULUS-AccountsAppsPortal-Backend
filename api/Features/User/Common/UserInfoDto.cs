@@ -3,8 +3,10 @@ namespace Nubulus.Backend.Api.Features.User.Common;
 public class UserInfoDto
 {
     public int UserId { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string UserKey { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    public bool IsCreator { get; set; }  // Indica si és el creador de l'Account
+    public bool IsCreator { get; set; }
 }

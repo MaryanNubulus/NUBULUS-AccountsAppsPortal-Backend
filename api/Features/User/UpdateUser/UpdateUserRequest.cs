@@ -4,16 +4,18 @@ public class UpdateUserRequest
 {
     public const string Route = "/api/v1/accounts/{accountId}/users/{userId}";
     public int AccountId { get; set; }
-    public string Name { get; init; } = string.Empty;
+    public string FullName { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
+    public string Phone { get; init; } = string.Empty;
 
     public UpdateUserRequest() { }
 
-    private UpdateUserRequest(int accountId, string name, string email)
+    private UpdateUserRequest(int accountId, string fullName, string email, string phone)
     {
         AccountId = accountId;
-        Name = name;
+        FullName = fullName;
         Email = email;
+        Phone = phone;
     }
 
     public Dictionary<string, string[]> Validate()
@@ -24,9 +26,9 @@ public class UpdateUserRequest
         if (AccountId <= 0)
             errors["AccountId"] = new[] { "AccountId must be a positive integer." };
 
-        // Validación Name
-        if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2 || Name.Length > 100)
-            errors["Name"] = new[] { "Name must be between 2 and 100 characters." };
+        // Validación FullName
+        if (string.IsNullOrWhiteSpace(FullName) || FullName.Length < 2 || FullName.Length > 100)
+            errors["FullName"] = new[] { "Full name must be between 2 and 100 characters." };
 
         // Validación Email
         if (string.IsNullOrWhiteSpace(Email) || Email.Length < 5 || Email.Length > 100)
@@ -38,11 +40,15 @@ public class UpdateUserRequest
                 errors["Email"] = new[] { "Invalid email format." };
         }
 
+        // Validación Phone
+        if (string.IsNullOrWhiteSpace(Phone) || Phone.Length > 15)
+            errors["Phone"] = new[] { "Phone is required and must not exceed 15 characters." };
+
         return errors;
     }
 
-    public static UpdateUserRequest Create(int accountId, string name, string email)
+    public static UpdateUserRequest Create(int accountId, string fullName, string email, string phone)
     {
-        return new UpdateUserRequest(accountId, name, email);
+        return new UpdateUserRequest(accountId, fullName, email, phone);
     }
 }

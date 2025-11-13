@@ -8,6 +8,7 @@ Gestió d'usuaris **dins d'un Account** amb les següents funcionalitats:
 - ✅ Llistar usuaris d'un Account amb paginació i cerca
 - ✅ Actualitzar informació d'usuaris
 - ✅ Pausar/Reactivar usuaris per Account
+- ✅ Compartir usuaris entre Accounts
 - ✅ Validació en múltiples capes
 - ✅ Auditoria completa
 - ✅ Relació Account-User via taula AccountUsers
@@ -26,6 +27,7 @@ Gestió d'usuaris **dins d'un Account** amb les següents funcionalitats:
 4. [Exemples d'Ús](#exemples-dús)
 5. [Errors i Respostes](#errors-i-respostes)
 6. [Relació Account-User](#relació-account-user)
+7. [Compartir Usuaris](#compartir-usuaris-entre-accounts)
 
 ---
 
@@ -37,14 +39,19 @@ Tots els endpoints requereixen **autenticació** (Bearer Token).
 
 **⚠️ Nota**: Totes les rutes inclouen `{accountId}` - els usuaris sempre pertanyen a un Account.
 
-| Mètode | Ruta                                                 | Descripció                         |
-| ------ | ---------------------------------------------------- | ---------------------------------- |
-| POST   | `/api/v1/accounts/{accountId}/users`                 | Crear usuari en un Account         |
-| GET    | `/api/v1/accounts/{accountId}/users`                 | Llistar usuaris d'un Account       |
-| GET    | `/api/v1/accounts/{accountId}/users/{userId}`        | Obtenir usuari per ID              |
-| PUT    | `/api/v1/accounts/{accountId}/users/{userId}`        | Actualitzar usuari                 |
-| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/pause`  | Pausar usuari en aquest Account    |
-| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/resume` | Reactivar usuari en aquest Account |
+| Mètode | Ruta                                                  | Descripció                                    |
+| ------ | ----------------------------------------------------- | --------------------------------------------- |
+| POST   | `/api/v1/accounts/{accountId}/users`                  | Crear usuari en un Account                    |
+| GET    | `/api/v1/accounts/{accountId}/users`                  | Llistar usuaris d'un Account                  |
+| GET    | `/api/v1/accounts/{accountId}/users/{userId}`         | Obtenir usuari per ID                         |
+| PUT    | `/api/v1/accounts/{accountId}/users/{userId}`         | Actualitzar usuari                            |
+| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/pause`   | Pausar usuari (en tots els Accounts)          |
+| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/resume`  | Reactivar usuari (en tots els Accounts)       |
+| GET    | `/api/v1/accounts/{accountId}/users/to-share`         | Obtenir usuaris disponibles per compartir     |
+| GET    | `/api/v1/accounts/{accountId}/users/shareds`          | Obtenir usuaris compartits amb aquest Account |
+| POST   | `/api/v1/accounts/{accountId}/users/{userId}/share`   | Compartir usuari amb l'Account                |
+| DELETE | `/api/v1/accounts/{accountId}/users/{userId}/unshare` | Deixar de compartir usuari                    |
+| DELETE | `/api/v1/accounts/{accountId}/users/{userId}/unshare` | Deixar de compartir usuari                    |
 
 ---
 
@@ -57,8 +64,10 @@ Els endpoints retornen usuaris amb la següent estructura:
 ```json
 {
   "userId": 123,
-  "name": "Joan Garcia",
+  "userKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "fullName": "Joan Garcia",
   "email": "joan.garcia@example.cat",
+  "phone": "+34612345678",
   "status": "A",
   "isCreator": true
 }
@@ -69,8 +78,10 @@ Els endpoints retornen usuaris amb la següent estructura:
 | Camp        | Tipus   | Descripció                                                            |
 | ----------- | ------- | --------------------------------------------------------------------- |
 | `userId`    | int     | ID únic de l'usuari                                                   |
-| `name`      | string  | Nom complet de l'usuari                                               |
+| `userKey`   | string  | Clau GUID única de l'usuari (36 caràcters)                            |
+| `fullName`  | string  | Nom complet de l'usuari                                               |
 | `email`     | string  | Email de l'usuari (únic al sistema)                                   |
+| `phone`     | string  | Telèfon de l'usuari (max 15 caràcters, required)                      |
 | `status`    | string  | `"A"` = Actiu en aquest Account, `"I"` = Inactiu/Pausat               |
 | `isCreator` | boolean | `true` si és el creador de l'Account, `false` si és un usuari regular |
 
@@ -78,6 +89,57 @@ Els endpoints retornen usuaris amb la següent estructura:
 
 - **`status`**: És específic de la relació amb l'Account. Un mateix usuari pot estar actiu en un Account i pausat en un altre.
 - **`isCreator`**: Correspon al camp `Creator = "Y"` de la taula `AccountUsers`. Només un usuari per Account pot ser creador.
+- **`phone`**: Camp required amb validació de màxim 15 caràcters.
+- **`userKey`**: Identificador GUID generat automàticament al crear l'usuari.
+
+### UserToShareDto
+
+Per als endpoints de compartir usuaris, s'utilitza un DTO més lleuger:
+
+```json
+{
+  "userId": 123,
+  "fullName": "Joan Garcia",
+  "email": "joan.garcia@example.cat"
+}
+```
+
+Aquest DTO només inclou la informació necessària per a la UI de selecció d'usuaris per compartir.
+
+---
+
+## Arquitectura i Patrons
+
+### Features Agrupats
+
+Els endpoints relacionats estan agrupats en features per funcionalitat:
+
+#### 1. **PauseResumeUser**
+
+Un sol servei amb dos endpoints per pausar i reactivar usuaris:
+
+- `PauseResumeUserRequest`: Constants de ruta (`PauseRoute`, `ResumeRoute`)
+- `PauseResumeUserService`: Dos mètodes (`PauseAsync`, `ResumeAsync`)
+- `PauseResumeUserEndPoint`: Dos endpoints en el mateix fitxer
+
+#### 2. **ShareUnshareUser**
+
+Mateix patró que PauseResumeUser per compartir/deixar de compartir:
+
+- `ShareUnshareUserRequest`: Constants de ruta (`ShareRoute`, `UnshareRoute`)
+- `ShareUnshareUserService`: Dos mètodes (`ShareAsync`, `UnshareAsync`)
+- `ShareUnshareUserEndPoint`: Dos endpoints en el mateix fitxer
+
+#### 3. **GetUsersToShare** i **GetSharedUsers**
+
+Features separats per obtenir listes d'usuaris disponibles per compartir.
+
+**Avantatges d'aquest patró**:
+
+- ✅ Endpoints relacionats agrupats lògicament
+- ✅ Un sol servei per funcionalitats relacionades
+- ✅ Manteniment més fàcil
+- ✅ Consistència amb la resta de l'arquitectura
 
 ---
 
@@ -90,9 +152,11 @@ Els endpoints retornen usuaris amb la següent estructura:
 ```csharp
 public class CreateUserRequest
 {
-    public int AccountId { get; init; }   // ID del Account (route parameter)
-    public string Name { get; init; }     // Nom de l'usuari
-    public string Email { get; init; }    // Email
+    public int AccountId { get; init; }      // ID del Account (route parameter)
+    public string FullName { get; init; }    // Nom complet de l'usuari
+    public string Email { get; init; }       // Email
+    public string Phone { get; init; }       // Telèfon (required, max 15 chars)
+    public string? Password { get; init; }   // Contrasenya (opcional)
 }
 ```
 
@@ -107,9 +171,9 @@ public Dictionary<string, string[]> Validate()
     if (AccountId <= 0)
         errors["AccountId"] = new[] { "AccountId must be greater than 0." };
 
-    // Name: entre 2 i 100 caràcters
-    if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2 || Name.Length > 100)
-        errors["Name"] = new[] { "Name must be between 2 and 100 characters." };
+    // FullName: entre 2 i 100 caràcters
+    if (string.IsNullOrWhiteSpace(FullName) || FullName.Length < 2 || FullName.Length > 100)
+        errors["FullName"] = new[] { "FullName must be between 2 and 100 characters." };
 
     // Email: entre 5 i 100 caràcters, format vàlid
     if (string.IsNullOrWhiteSpace(Email) || Email.Length < 5 || Email.Length > 100)
@@ -121,6 +185,10 @@ public Dictionary<string, string[]> Validate()
             errors["Email"] = new[] { "Invalid email format." };
     }
 
+    // Phone: required, màxim 15 caràcters
+    if (string.IsNullOrWhiteSpace(Phone) || Phone.Length > 15)
+        errors["Phone"] = new[] { "Phone is required and must not exceed 15 characters." };
+
     return errors;
 }
 ```
@@ -131,8 +199,10 @@ public Dictionary<string, string[]> Validate()
 
 ```json
 {
-  "name": "Joan Garcia",
-  "email": "joan.garcia@example.cat"
+  "fullName": "Joan Garcia",
+  "email": "joan.garcia@example.cat",
+  "phone": "+34612345678",
+  "password": "secret123"
 }
 ```
 
@@ -204,15 +274,19 @@ public class GetUsersRequest
   "items": [
     {
       "userId": 1,
-      "name": "Joan Garcia",
+      "userKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "fullName": "Joan Garcia",
       "email": "joan.garcia@example.cat",
+      "phone": "+34612345678",
       "status": "A",
       "isCreator": true
     },
     {
       "userId": 2,
-      "name": "Maria López",
+      "userKey": "b2c3d4e5-f678-9012-bcde-f12345678901",
+      "fullName": "Maria López",
       "email": "maria@example.cat",
+      "phone": "+34623456789",
       "status": "A",
       "isCreator": false
     }
@@ -220,7 +294,10 @@ public class GetUsersRequest
 }
 ```
 
-**⚠️ Nota sobre `isCreator`**: Indica si l'usuari és el **creador de l'Account** (correspon al camp `Creator = "Y"` a la taula `AccountUsers`).
+**⚠️ Notes**:
+
+- Cerca per `FullName`, `Email` i `Phone`
+- `isCreator`: Indica si l'usuari és el **creador de l'Account** (correspon al camp `Creator = "Y"` a la taula `AccountUsers`).
 
 ---
 
@@ -243,8 +320,10 @@ public class GetUserRequest
 ```json
 {
   "userId": 123,
-  "name": "Joan Garcia",
+  "userKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "fullName": "Joan Garcia",
   "email": "joan.garcia@example.cat",
+  "phone": "+34612345678",
   "status": "A",
   "isCreator": true
 }
@@ -253,8 +332,10 @@ public class GetUserRequest
 **Camps del Response**:
 
 - `userId`: ID únic de l'usuari
-- `name`: Nom de l'usuari
+- `userKey`: Clau GUID única de l'usuari
+- `fullName`: Nom complet de l'usuari
 - `email`: Email de l'usuari
+- `phone`: Telèfon de l'usuari
 - `status`: `"A"` = Actiu, `"I"` = Inactiu (Pausat)
 - `isCreator`: `true` si és el creador de l'Account, `false` si no
 
@@ -267,9 +348,10 @@ public class GetUserRequest
 ```csharp
 public class UpdateUserRequest
 {
-    public int AccountId { get; init; }   // ID del Account (route parameter)
-    public string Name { get; init; }
-    public string Email { get; init; }
+    public int AccountId { get; init; }      // ID del Account (route parameter)
+    public string FullName { get; init; }    // Nom complet
+    public string Email { get; init; }       // Email
+    public string Phone { get; init; }       // Telèfon (required, max 15 chars)
 }
 ```
 
@@ -284,9 +366,9 @@ public Dictionary<string, string[]> Validate()
     if (AccountId <= 0)
         errors["AccountId"] = new[] { "AccountId must be greater than 0." };
 
-    // Name: entre 2 i 100 caràcters
-    if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2 || Name.Length > 100)
-        errors["Name"] = new[] { "Name must be between 2 and 100 characters." };
+    // FullName: entre 2 i 100 caràcters
+    if (string.IsNullOrWhiteSpace(FullName) || FullName.Length < 2 || FullName.Length > 100)
+        errors["FullName"] = new[] { "FullName must be between 2 and 100 characters." };
 
     // Email: format vàlid
     if (string.IsNullOrWhiteSpace(Email) || Email.Length < 5 || Email.Length > 100)
@@ -298,6 +380,10 @@ public Dictionary<string, string[]> Validate()
             errors["Email"] = new[] { "Invalid email format." };
     }
 
+    // Phone: required, màxim 15 caràcters
+    if (string.IsNullOrWhiteSpace(Phone) || Phone.Length > 15)
+        errors["Phone"] = new[] { "Phone is required and must not exceed 15 characters." };
+
     return errors;
 }
 ```
@@ -308,8 +394,9 @@ public Dictionary<string, string[]> Validate()
 
 ```json
 {
-  "name": "Joan Garcia Actualitzat",
-  "email": "joan.nou@example.cat"
+  "fullName": "Joan Garcia Actualitzat",
+  "email": "joan.nou@example.cat",
+  "phone": "+34687654321"
 }
 ```
 
@@ -332,9 +419,11 @@ public class PauseResumeUserRequest
 
 **⚠️ Important**:
 
-- Pausa/reactivar **només afecta la relació** entre l'usuari i aquest Account específic
-- L'estat es guarda a la taula `AccountUsers` (camp `Status`)
-- Un mateix usuari pot estar actiu en un Account i pausat en un altre
+- **Pausa/reactivar GLOBAL**: Afecta l'usuari a TOTS els Accounts
+- L'estatus de l'usuari es canvia a la taula `Users` (camp `Status`)
+- L'estatus de TOTES les relacions es canvia a la taula `AccountUsers` (camp `Status`)
+- Si pausas un usuari, **es pausarà en tots els Accounts on pertany**
+- Si reactives un usuari, **es reactivarà en tots els Accounts on pertany**
 
 **No requereix body**. Només cal fer la petició PATCH a l'endpoint corresponent.
 
@@ -349,8 +438,10 @@ curl -X POST https://api.nubulus.com/api/v1/accounts/123/users \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Joan Garcia",
-    "email": "joan.garcia@example.cat"
+    "fullName": "Joan Garcia",
+    "email": "joan.garcia@example.cat",
+    "phone": "+34612345678",
+    "password": "secret123"
   }'
 ```
 
@@ -359,7 +450,7 @@ curl -X POST https://api.nubulus.com/api/v1/accounts/123/users \
 **Errors possibles**:
 
 - `404 Not Found`: L'Account amb ID 123 no existeix
-- `409 Conflict`: Ja existeix un usuari amb aquest Name o Email
+- `409 Conflict`: Ja existeix un usuari amb aquest FullName o Email
 
 ---
 
@@ -383,7 +474,7 @@ console.log(`Total usuaris a l'Account ${accountId}: ${data.totalCount}`);
 console.log(data.items);
 ```
 
-**Nota**: Només retorna usuaris associats a l'Account 123.
+**Nota**: La cerca inclou `FullName`, `Email` i `Phone`.
 
 ---
 
@@ -404,7 +495,7 @@ if (response.IsSuccessStatusCode)
 {
     var user = await response.Content
         .ReadFromJsonAsync<UserInfoDto>();
-    Console.WriteLine($"Usuari: {user.Name}");
+    Console.WriteLine($"Usuari: {user.FullName}");
 }
 else if (response.StatusCode == HttpStatusCode.NotFound)
 {
@@ -428,8 +519,9 @@ headers = {
     "Content-Type": "application/json"
 }
 data = {
-    "name": "Joan Actualitzat",
-    "email": "joan.nou@example.cat"
+    "fullName": "Joan Actualitzat",
+    "email": "joan.nou@example.cat",
+    "phone": "+34687654321"
 }
 
 response = requests.put(url, json=data, headers=headers)
@@ -447,7 +539,7 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/users/456/pause \
 
 **Response**: `200 OK` amb `{"data": 456}`
 
-**⚠️ Nota**: Això pausa l'usuari 456 **només per l'Account 123**. Si l'usuari pertany a altres Accounts, romandran sense canvis.
+**⚠️ Nota**: Això pausa l'usuari 456 **globalment en TOTS els Accounts** on pertany. L'estatus de l'usuari i totes les seves relacions es canvien a "Inactiu".
 
 ---
 
@@ -460,6 +552,8 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/users/456/resume \
 
 **Response**: `200 OK` amb `{"data": 456}`
 
+**⚠️ Nota**: Això reactiva l'usuari 456 **globalment en TOTS els Accounts** on pertany. L'estatus de l'usuari i totes les seves relacions es canvien a "Actiu".
+
 ---
 
 ## Errors i Respostes
@@ -471,7 +565,7 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/users/456/resume \
 | 200 OK             | Ok         | Operació exitosa              | Actualització correcta |
 | 201 Created        | Ok         | Recurs creat                  | Usuari creat           |
 | 404 Not Found      | NotFound   | Recurs no trobat              | Usuari inexistent      |
-| 409 Conflict       | Conflict   | Conflicte amb dades existents | Email duplicat         |
+| 409 Conflict       | Conflict   | Conflicte amb dades existents | Dades duplicades       |
 | 422 Unprocessable  | Problems   | Errors de validació           | Camp obligatori buit   |
 | 500 Internal Error | Error      | Error del servidor            | Excepció no controlada |
 
@@ -487,7 +581,8 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/users/456/resume \
   "title": "One or more validation errors occurred.",
   "status": 422,
   "errors": {
-    "Name": ["Name must be between 2 and 100 characters."],
+    "FullName": ["FullName must be between 2 and 100 characters."],
+    "Phone": ["Phone is required and must not exceed 15 characters."],
     "Email": ["Invalid email format."]
   }
 }
@@ -553,7 +648,7 @@ if (account == null)
 
 // Verificar duplicats
 var exists = await _unitOfWork.Users.UserInfoExistsAsync(
-    request.Name, request.Email);
+    request.FullName, request.Email);
 
 if (exists)
     return CreateUserResponse.DataExists("User already exists.");
@@ -567,7 +662,7 @@ if (!belongsToAccount)
 
 - ✅ Existència de l'Account
 - ✅ Relació User-Account via taula AccountUsers
-- ✅ Unicitat de Name, Email
+- ✅ Unicitat de FullName, Email
 - ✅ Verificació en taula Users
 - ✅ Exclusió d'usuari actual en actualitzacions
 
@@ -613,8 +708,9 @@ Aquest email s'utilitza per:
 
 Cerca **case-insensitive** a:
 
-- User.Name
+- User.FullName
 - User.Email
+- User.Phone
 
 **⚠️ Nota**: La cerca **només inclou usuaris de l'Account especificat** (filtra via AccountUsers).
 
@@ -681,6 +777,353 @@ IsCreator = x.AccountUser.Creator == "Y"
 - ✅ Aplicar permisos especials (futura funcionalitat)
 - ✅ Evitar pausar o eliminar el creador sense transferir propietat
 
+### ParentKey - Tracking de l'Account Original
+
+Cada usuari té un camp `ParentKey` que identifica **l'Account que originalment va crear l'usuari**:
+
+```csharp
+public class UserEntity
+{
+    public AccountKey ParentKey { get; set; }  // Account que va crear aquest usuari
+    // ... altres camps
+}
+```
+
+**Propòsit del ParentKey**:
+
+- 🔍 **Tracking d'origen**: Saber quin Account va crear originalment l'usuari
+- 🔗 **Compartir usuaris**: Permet distingir entre usuaris propis i compartits
+- 📊 **Reporting**: Facilita estadístiques sobre creació i compartició d'usuaris
+
+**Diferència entre ParentKey i AccountUsers**:
+
+| Aspecte      | `ParentKey`                       | `AccountUsers`                                  |
+| ------------ | --------------------------------- | ----------------------------------------------- |
+| Definició    | Account que va **crear** l'usuari | Accounts amb els que l'usuari està **vinculat** |
+| Cardinalitat | **Un** sol valor (no canvia mai)  | **Múltiples** relacions (many-to-many)          |
+| Ús           | Identificar propietari original   | Gestionar accés i permisos                      |
+| Exemple      | `ParentKey = "account-123"`       | AccountUsers: `["account-123", "account-456"]`  |
+
+**Exemple pràctic**:
+
+1. Account A crea l'usuari Joan → `ParentKey = "account-a-key"`
+2. Joan es comparteix amb Account B → AccountUsers: `["account-a-key", "account-b-key"]`
+3. Joan es comparteix amb Account C → AccountUsers: `["account-a-key", "account-b-key", "account-c-key"]`
+4. El `ParentKey` sempre serà `"account-a-key"` (no canvia mai)
+
+---
+
+## Compartir Usuaris entre Accounts
+
+Els usuaris poden ser **compartits** entre diferents Accounts mitjançant la funcionalitat de sharing.
+
+### GET - Obtenir Usuaris Disponibles per Compartir (amb Paginació)
+
+**Endpoint**: `GET /api/v1/accounts/{accountId}/users/to-share`
+
+Retorna una llista d'usuaris que **NO** estan vinculats a l'Account especificat i que poden ser compartits, amb suport per a **paginació i cerca**.
+
+**Paràmetres de Query**:
+
+| Paràmetre    | Tipus  | Obligatori | Descripció                       |
+| ------------ | ------ | ---------- | -------------------------------- |
+| `searchTerm` | string | No         | Filtra per nom o email           |
+| `pageNumber` | int    | No         | Número de pàgina (default: 1)    |
+| `pageSize`   | int    | No         | Usuaris per pàgina (default: 10) |
+
+**Exemple de Request**:
+
+```
+GET /api/v1/accounts/1/users/to-share?searchTerm=maria&pageNumber=1&pageSize=10
+```
+
+**Resposta**:
+
+```json
+{
+  "totalCount": 15,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "items": [
+    {
+      "userId": 45,
+      "fullName": "Maria Lopez",
+      "email": "maria.lopez@example.cat"
+    },
+    {
+      "userId": 67,
+      "fullName": "Maria García",
+      "email": "maria.garcia@example.cat"
+    }
+  ]
+}
+```
+
+**Estructura de la Resposta** (`PaginatedResponse<UserToShareDto>`):
+
+| Camp         | Tipus              | Descripció                       |
+| ------------ | ------------------ | -------------------------------- |
+| `totalCount` | int                | Total d'usuaris que coincideixen |
+| `pageNumber` | int                | Número de pàgina actual          |
+| `pageSize`   | int                | Usuaris per pàgina               |
+| `items`      | `UserToShareDto[]` | Array d'usuaris disponibles      |
+
+**Lògica**:
+
+```csharp
+// Retorna usuaris que NO tenen relació AccountUser amb aquest Account
+var usersAlreadyInAccount = _dbContext.AccountUsers
+    .Where(au => au.AccountKey == account.Key)
+    .Select(au => au.UserKey);
+
+var availableUsers = _dbContext.Users
+    .Where(u => !usersAlreadyInAccount.Contains(u.Key));
+
+// Aplicar filtre de cerca si es proporciona
+if (!string.IsNullOrWhiteSpace(searchTerm))
+{
+    availableUsers = availableUsers.Where(u =>
+        u.FullName.Contains(searchTerm) ||
+        u.Email.Contains(searchTerm));
+}
+
+// Aplicar paginació
+var paginated = availableUsers
+    .Skip((pageNumber - 1) * pageSize)
+    .Take(pageSize)
+    .ToList();
+```
+
+### GET - Obtenir Usuaris Compartits (amb Paginació)
+
+**Endpoint**: `GET /api/v1/accounts/{accountId}/users/shareds`
+
+Retorna usuaris compartits amb aquest Account (on `ParentKey != accountKey`) amb suport per a **paginació i cerca**.
+
+**Paràmetres de Query**:
+
+| Paràmetre    | Tipus  | Obligatori | Descripció                       |
+| ------------ | ------ | ---------- | -------------------------------- |
+| `searchTerm` | string | No         | Filtra per nom o email           |
+| `pageNumber` | int    | No         | Número de pàgina (default: 1)    |
+| `pageSize`   | int    | No         | Usuaris per pàgina (default: 10) |
+
+**Exemple de Request**:
+
+```
+GET /api/v1/accounts/1/users/shareds?searchTerm=maria&pageNumber=1&pageSize=10
+```
+
+**Resposta**:
+
+```json
+{
+  "totalCount": 25,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "items": [
+    {
+      "userId": 45,
+      "fullName": "Maria Lopez",
+      "email": "maria.lopez@example.cat"
+    },
+    {
+      "userId": 67,
+      "fullName": "Maria García",
+      "email": "maria.garcia@example.cat"
+    }
+  ]
+}
+```
+
+**Estructura de la Resposta** (`PaginatedResponse<UserToShareDto>`):
+
+| Camp         | Tipus              | Descripció                       |
+| ------------ | ------------------ | -------------------------------- |
+| `totalCount` | int                | Total d'usuaris que coincideixen |
+| `pageNumber` | int                | Número de pàgina actual          |
+| `pageSize`   | int                | Usuaris per pàgina               |
+| `items`      | `UserToShareDto[]` | Array d'usuaris compartits       |
+
+**Lògica**:
+
+```csharp
+// Només retorna usuaris on ParentKey és diferent del Account actual
+var sharedUsers = from u in _dbContext.Users
+                  join au in _dbContext.AccountUsers on u.Key equals au.UserKey
+                  where au.AccountKey == account.Key && u.ParentKey != account.Key
+                  select u;
+
+// Aplicar filtre de cerca si es proporciona
+if (!string.IsNullOrWhiteSpace(searchTerm))
+{
+    sharedUsers = sharedUsers.Where(u =>
+        u.FullName.Contains(searchTerm) ||
+        u.Email.Value.Contains(searchTerm));
+}
+
+// Aplicar paginació
+var paginated = sharedUsers
+    .Skip((pageNumber - 1) * pageSize)
+    .Take(pageSize)
+    .ToList();
+```
+
+### POST - Compartir Usuari i DELETE - Deixar de Compartir
+
+Els endpoints de compartir i deixar de compartir estan implementats en el feature `ShareUnshareUser` seguint el mateix patró que `PauseResumeUser` (dos endpoints en un sol fitxer).
+
+#### ShareUnshareUserRequest
+
+```csharp
+public class ShareUnshareUserRequest
+{
+    public const string ShareRoute = "/api/v1/accounts/{accountId}/users/{userId}/share";
+    public const string UnshareRoute = "/api/v1/accounts/{accountId}/users/{userId}/unshare";
+    public int AccountId { get; set; }
+    public int UserId { get; set; }
+}
+```
+
+#### ShareUnshareUserService
+
+```csharp
+public class ShareUnshareUserService
+{
+    public async Task<IGenericResponse<string>> ShareAsync(int accountId, int userId, string userContextEmail, CancellationToken cancellationToken)
+    { /* Compartir usuari */ }
+
+    public async Task<IGenericResponse<string>> UnshareAsync(int accountId, int userId, string userContextEmail, CancellationToken cancellationToken)
+    { /* Deixar de compartir */ }
+}
+```
+
+#### Compartir Usuari
+
+**Endpoint**: `POST /api/v1/accounts/{accountId}/users/{userId}/share`
+
+Comparteix un usuari existent amb un Account diferent.
+
+**Body**: _(vacio)_
+
+**Resposta**:
+
+```json
+{
+  "message": "User shared successfully."
+}
+```
+
+**Lògica**:
+
+1. Verifica que l'usuari existeix
+2. Verifica que l'Account existeix
+3. Comprova que **no existeix ja la relació**
+4. Crea una nova relació `AccountUser` amb:
+   - `Creator = "N"` (no és el creador)
+   - `Status = "A"` (actiu per defecte)
+5. Registra l'acció en auditoria
+
+**Validacions**:
+
+- ❌ `404 Not Found`: Usuari o Account no trobat
+- ❌ `409 Conflict`: Usuari ja està compartit amb aquest Account
+- ✅ `200 OK`: Usuari compartit correctament
+
+#### Deixar de Compartir Usuari
+
+**Endpoint**: `DELETE /api/v1/accounts/{accountId}/users/{userId}/unshare`
+
+Elimina la relació de compartició entre un usuari i un Account.
+
+**Resposta**:
+
+```json
+{
+  "message": "User unshared successfully."
+}
+```
+
+**Lògica**:
+
+1. Verifica que existeix la relació `AccountUser`
+2. **NO permet eliminar** si `Creator = "Y"` (no pots deixar de compartir el creador)
+3. Elimina la relació `AccountUser`
+4. Registra l'acció en auditoria amb `RecordType.Delete`
+
+**Validacions**:
+
+- ❌ `404 Not Found`: Usuari o Account no trobat, o no hi ha relació
+- ❌ `409 Conflict`: No es pot deixar de compartir el creador de l'Account
+- ✅ `200 OK`: Relació eliminada correctament
+
+### Exemple Complet de Compartir Usuaris
+
+**Escenari**: Account B vol compartir l'usuari Maria (creat per Account A)
+
+1. **Obtenir usuaris disponibles**:
+
+```bash
+GET /api/v1/accounts/2/users/to-share
+```
+
+Resposta:
+
+```json
+[
+  {
+    "userId": 45,
+    "fullName": "Maria Lopez",
+    "email": "maria.lopez@example.cat"
+  }
+]
+```
+
+2. **Compartir l'usuari Maria amb Account B**:
+
+```bash
+POST /api/v1/accounts/2/users/45/share
+```
+
+Resposta:
+
+```json
+{
+  "message": "User shared successfully."
+}
+```
+
+3. **Verificar usuaris compartits**:
+
+```bash
+GET /api/v1/accounts/2/users/shareds
+```
+
+Resposta:
+
+```json
+[
+  {
+    "userId": 45,
+    "fullName": "Maria Lopez",
+    "email": "maria.lopez@example.cat"
+  }
+]
+```
+
+4. **Deixar de compartir**:
+
+```bash
+DELETE /api/v1/accounts/2/users/45/unshare
+```
+
+**⚠️ Regles Importants**:
+
+- No pots deixar de compartir un usuari amb `isCreator = true`
+- Els usuaris compartits tenen `isCreator = false` automàticament
+- El `ParentKey` de l'usuari mai canvia (sempre apunta a l'Account creador)
+- Compartir crea una relació `AccountUser` amb `Creator = "N"`
+
 ### Diferències amb Accounts
 
 Els **Users** són més simples que els **Accounts**:
@@ -690,10 +1133,11 @@ Els **Users** són més simples que els **Accounts**:
 3. **Status en AccountUsers** - no directament a la taula Users
 4. **Més lleugers** - només Name i Email
 5. **Reutilitzables** - un mateix usuari pot estar en diversos Accounts
+6. **ParentKey** - Tracking de l'Account que va crear l'usuari originalment
 
 ---
 
-**Versió**: 1.1  
-**Data**: 12 de Novembre de 2025  
+**Versió**: 1.3  
+**Data**: 13 de Novembre de 2025  
 **Idioma**: Català  
-**Última actualització**: Afegit camp `isCreator` per identificar el creador de l'Account
+**Última actualització**: Refactorització: ShareUnshareUser ara segueix el patró PauseResumeUser (dos endpoints en un sol servei)

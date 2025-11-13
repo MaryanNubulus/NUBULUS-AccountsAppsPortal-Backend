@@ -9,8 +9,10 @@ public static class UserMappers
         return new UserDto
         {
             UserId = entity.UserId.Value,
-            Name = entity.Name,
+            UserKey = entity.UserKey.Value,
+            FullName = entity.FullName,
             Email = entity.Email.Value,
+            Phone = entity.Phone,
             Status = entity.Status.Value,
             IsCreator = entity.IsCreator
         };
@@ -26,10 +28,27 @@ public static class UserMappers
         return new UserInfoDto
         {
             UserId = entity.UserId.Value,
-            Name = entity.Name,
+            UserKey = entity.UserKey.Value,
+            FullName = entity.FullName,
             Email = entity.Email.Value,
+            Phone = entity.Phone,
             Status = entity.Status.Value,
             IsCreator = entity.IsCreator
         };
+    }
+
+    public static UserToShareDto ToShareDto(this UserEntity entity)
+    {
+        return new UserToShareDto
+        {
+            UserId = entity.UserId.Value,
+            FullName = entity.FullName,
+            Email = entity.Email.Value
+        };
+    }
+
+    public static List<UserToShareDto> ToShareDto(this IEnumerable<UserEntity> entities)
+    {
+        return entities.Select(e => e.ToShareDto()).ToList();
     }
 }

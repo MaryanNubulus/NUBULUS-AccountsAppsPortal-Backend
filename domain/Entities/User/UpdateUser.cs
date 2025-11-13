@@ -4,15 +4,17 @@ namespace Nubulus.Domain.Entities.User;
 
 public class UpdateUser
 {
-    public UserKey UserKey { get; private set; } = default!;
-    public string Name { get; private set; } = default!;
+    public UserId UserId { get; private set; } = default!;
+    public string FullName { get; private set; } = default!;
     public EmailAddress Email { get; private set; } = default!;
+    public string Phone { get; private set; } = default!;
 
-    public UpdateUser(UserKey userKey, string name, EmailAddress email)
+    public UpdateUser(UserId userId, string fullName, EmailAddress email, string phone)
     {
-        UserKey = userKey;
-        Name = name;
+        UserId = userId;
+        FullName = fullName;
         Email = email;
+        Phone = phone;
 
         UpdateUserValidator validator = new UpdateUserValidator(this);
     }
@@ -25,15 +27,13 @@ internal sealed class UpdateUserValidator
         if (command == null)
             throw new ArgumentNullException(nameof(command), "UpdateUser command cannot be null.");
 
-        // Validación UserKey
-        if (string.IsNullOrWhiteSpace(command.UserKey.Value))
-            throw new ArgumentException("User key is required.", nameof(command.UserKey));
-        if (command.UserKey.Value.Length > 36)
-            throw new ArgumentException("User key must not exceed 36 characters.", nameof(command.UserKey));
+        // Validación UserId
+        if (command.UserId.Value <= 0)
+            throw new ArgumentException("User ID must be greater than 0.", nameof(command.UserId));
 
-        // Validación Name
-        if (string.IsNullOrWhiteSpace(command.Name) || command.Name.Length < 2 || command.Name.Length > 100)
-            throw new ArgumentException("Name must be between 2 and 100 characters.", nameof(command.Name));
+        // Validación FullName
+        if (string.IsNullOrWhiteSpace(command.FullName) || command.FullName.Length < 2 || command.FullName.Length > 100)
+            throw new ArgumentException("Full name must be between 2 and 100 characters.", nameof(command.FullName));
 
         // Validación Email
         if (string.IsNullOrWhiteSpace(command.Email.Value) || command.Email.Value.Length < 5 || command.Email.Value.Length > 100)
@@ -44,5 +44,9 @@ internal sealed class UpdateUserValidator
             if (!System.Text.RegularExpressions.Regex.IsMatch(command.Email.Value, emailPattern))
                 throw new ArgumentException("Invalid email format.", nameof(command.Email));
         }
+
+        // Validación Phone
+        if (string.IsNullOrWhiteSpace(command.Phone) || command.Phone.Length > 15)
+            throw new ArgumentException("Phone is required and must not exceed 15 characters.", nameof(command.Phone));
     }
 }

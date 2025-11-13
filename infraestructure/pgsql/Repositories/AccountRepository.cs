@@ -34,6 +34,23 @@ public class AccountRepository : IAccountsRepository
         if (emailInAccountExists)
             return true;
 
+
+        var phoneInAccountsExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.Phone == phone &&
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
+            cancellationToken);
+
+        if (phoneInAccountsExists)
+            return true;
+
+        var numberIdExists = await _dbContext.Accounts.AnyAsync(a =>
+            a.NumberId == numberId &&
+            (excludeAccountId == null || a.Id != excludeAccountId.Value),
+            cancellationToken);
+
+        if (numberIdExists)
+            return true;
+
         if (excludeAccountId != null)
         {
             var emailInUsersExists = await _dbContext.Users.AnyAsync(u =>
@@ -46,6 +63,17 @@ public class AccountRepository : IAccountsRepository
 
             if (emailInUsersExists)
                 return true;
+
+            var phoneInUsersExists = await _dbContext.Users.AnyAsync(u =>
+                u.Phone == phone &&
+                !_dbContext.AccountUsers.Any(au =>
+                    au.UserKey == u.Key &&
+                    au.AccountKey == _dbContext.Accounts.First(a => a.Id == excludeAccountId.Value).Key &&
+                    au.Creator == "Y"),
+                cancellationToken);
+
+            if (phoneInUsersExists)
+                return true;
         }
         else
         {
@@ -53,22 +81,13 @@ public class AccountRepository : IAccountsRepository
 
             if (emailInUsersExists)
                 return true;
+
+            var phoneInUsersExists = await _dbContext.Users.AnyAsync(u => u.Phone == phone, cancellationToken);
+            if (phoneInUsersExists)
+                return true;
         }
 
-        var phoneExists = await _dbContext.Accounts.AnyAsync(a =>
-            a.Phone == phone &&
-            (excludeAccountId == null || a.Id != excludeAccountId.Value),
-            cancellationToken);
-
-        if (phoneExists)
-            return true;
-
-        var numberIdExists = await _dbContext.Accounts.AnyAsync(a =>
-            a.NumberId == numberId &&
-            (excludeAccountId == null || a.Id != excludeAccountId.Value),
-            cancellationToken);
-
-        return numberIdExists;
+        return false;
     }
 
     public async Task<int> CountAccountsAsync(string? searchTerm, CancellationToken cancellationToken = default)
@@ -105,7 +124,7 @@ public class AccountRepository : IAccountsRepository
                 a.Account.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
                 a.Account.Phone.ToUpper().Contains(searchTerm.ToUpper()) ||
                 a.Account.NumberId.ToUpper().Contains(searchTerm.ToUpper()) ||
-                a.User.Name.ToUpper().Contains(searchTerm.ToUpper()));
+                a.User.FullName.ToUpper().Contains(searchTerm.ToUpper()));
         }
 
         if (page.HasValue && size.HasValue)
@@ -118,7 +137,7 @@ public class AccountRepository : IAccountsRepository
             AccountId = new AccountId(a.Account.Id),
             AccountKey = new AccountKey(a.Account.Key),
             Name = a.Account.Name,
-            FullName = a.User.Name,
+            FullName = a.User.FullName,
             Email = new EmailAddress(a.Account.Email),
             Phone = a.Account.Phone,
             NumberId = a.Account.NumberId,
@@ -142,7 +161,7 @@ public class AccountRepository : IAccountsRepository
                 AccountId = new AccountId(a.Account.Id),
                 AccountKey = new AccountKey(a.Account.Key),
                 Name = a.Account.Name,
-                FullName = a.User.Name,
+                FullName = a.User.FullName,
                 Email = new EmailAddress(a.Account.Email),
                 Phone = a.Account.Phone,
                 Address = a.Account.Address,
@@ -168,7 +187,7 @@ public class AccountRepository : IAccountsRepository
                 AccountId = new AccountId(a.Account.Id),
                 AccountKey = new AccountKey(a.Account.Key),
                 Name = a.Account.Name,
-                FullName = a.User.Name,
+                FullName = a.User.FullName,
                 Email = new EmailAddress(a.Account.Email),
                 Phone = a.Account.Phone,
                 Address = a.Account.Address,
@@ -198,8 +217,10 @@ public class AccountRepository : IAccountsRepository
         var user = new User
         {
             Key = command.UserKey,
-            Name = command.FullName,
+            ParentKey = account.Key,  // El compte on es crea és el parent
+            FullName = command.FullName,
             Email = command.Email.Value,
+            Phone = command.Phone,
         };
         var userAuditRecord = user.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
 

@@ -13,6 +13,7 @@ public class RecordType
     public static RecordType Update => new RecordType("U");
     public static RecordType Pause => new RecordType("P");
     public static RecordType Resume => new RecordType("R");
+    public static RecordType Delete => new RecordType("D");
 
 
     public static RecordType Parse(string recordType)
@@ -23,6 +24,7 @@ public class RecordType
             "U" => Update,
             "P" => Pause,
             "R" => Resume,
+            "D" => Delete,
             _ => throw new ArgumentException($"Invalid record type: {recordType}")
         };
     }

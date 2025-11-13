@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Nubulus.Backend.Infraestructure.Pgsql;
@@ -11,9 +12,11 @@ using Nubulus.Backend.Infraestructure.Pgsql;
 namespace nubulus.backend.api.Migrations
 {
     [DbContext(typeof(PostgreDBContext))]
-    partial class PostgreDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251113085220_NewFields")]
+    partial class NewFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -207,12 +210,6 @@ namespace nubulus.backend.api.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ParentKey")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("parent_key");
 
                     b.Property<string>("Password")
                         .IsRequired()

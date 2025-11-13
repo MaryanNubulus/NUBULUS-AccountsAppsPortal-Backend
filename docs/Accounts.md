@@ -402,6 +402,8 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/pause \
 
 **Response**: `200 OK` amb `{"data": 123}`
 
+**⚠️ Nota**: Això pausa el compte 123. Es canvia l'estatus del compte a "Inactiu" i **TOTES les seves relacions AccountUsers es pausan**.
+
 ---
 
 ### 6. Reactivar Compte (cURL)
@@ -412,6 +414,8 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/resume \
 ```
 
 **Response**: `200 OK` amb `{"data": 123}`
+
+**⚠️ Nota**: Això reactiva el compte 123. Es canvia l'estatus del compte a "Actiu" i **TOTES les seves relacions AccountUsers es reactiven**.
 
 ---
 
@@ -424,7 +428,7 @@ curl -X PATCH https://api.nubulus.com/api/v1/accounts/123/resume \
 | 200 OK             | Ok         | Operació exitosa              | Actualització correcta |
 | 201 Created        | Ok         | Recurs creat                  | Compte creat           |
 | 404 Not Found      | NotFound   | Recurs no trobat              | Compte inexistent      |
-| 409 Conflict       | Conflict   | Conflicte amb dades existents | Email duplicat         |
+| 409 Conflict       | Conflict   | Conflicte amb dades existents | Dades duplicades       |
 | 422 Unprocessable  | Problems   | Errors de validació           | Camp obligatori buit   |
 | 500 Internal Error | Error      | Error del servidor            | Excepció no controlada |
 
@@ -563,9 +567,18 @@ Cada operació crea registres d'auditoria amb:
 
 ### 🔄 Pausa vs Esborrat
 
-- **Pausar**: Canvia `Status` a "I" (Inactive)
+- **Pausar Compte**: Canvia `Status` a "I" (Inactive) i pausa **TOTES les relacions AccountUsers**
+- **Pausar Usuari**: Canvia `Status` a "I" (Inactive) i pausa **TOTES les relacions AccountUsers de l'usuari**
 - **No s'esborra**: Les dades es mantenen (soft delete)
-- **Efecte cascada**: També pausa/reactiva els AccountUsers
+- **Efecte cascada**:
+  - Pausa de compte → pausa les relacions dels usuaris d'aquell compte
+  - Pausa de usuari → pausa les relacions de l'usuari en TOTS els comptes
+  - Els usuaris es pausan de manera independent del compte
+
+⚠️ **Diferència important**:
+
+- L'estatus del **Compte** afecta les relacions `AccountUsers`
+- L'estatus de l'**Usuari** afecta els registres de `User` i totes les seves relacions `AccountUsers` globalment
 
 ---
 

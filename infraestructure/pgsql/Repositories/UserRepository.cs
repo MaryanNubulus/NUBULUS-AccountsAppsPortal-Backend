@@ -19,7 +19,7 @@ public class UserRepository : IUsersRepository
     public async Task<bool> UserInfoExistsAsync(string name, string email, CancellationToken cancellationToken = default, UserId? excludeUserId = null)
     {
         var nameExists = await _dbContext.Users.AnyAsync(u =>
-            u.Name == name &&
+            u.FullName == name &&
             (excludeUserId == null || u.Id != excludeUserId.Value),
             cancellationToken);
 
@@ -64,8 +64,9 @@ public class UserRepository : IUsersRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(u =>
-                u.Name.ToUpper().Contains(searchTerm.ToUpper()) ||
-                u.Email.ToUpper().Contains(searchTerm.ToUpper()));
+                u.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Phone.Contains(searchTerm));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -86,8 +87,9 @@ public class UserRepository : IUsersRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(x =>
-                x.User.Name.ToUpper().Contains(searchTerm.ToUpper()) ||
-                x.User.Email.ToUpper().Contains(searchTerm.ToUpper()));
+                x.User.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                x.User.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                x.User.Phone.Contains(searchTerm));
         }
 
         if (page.HasValue && size.HasValue)
@@ -101,8 +103,11 @@ public class UserRepository : IUsersRepository
             {
                 UserId = new UserId(x.User.Id),
                 UserKey = new UserKey(x.User.Key),
-                Name = x.User.Name,
+                ParentKey = new AccountKey(x.User.ParentKey),
+                FullName = x.User.FullName,
                 Email = new EmailAddress(x.User.Email),
+                Phone = x.User.Phone,
+                Password = x.User.Password,
                 Status = Status.Parse(x.AccountUser.Status),
                 IsCreator = x.AccountUser.Creator == "Y"
             })
@@ -126,8 +131,11 @@ public class UserRepository : IUsersRepository
             {
                 UserId = new UserId(x.User.Id),
                 UserKey = new UserKey(x.User.Key),
-                Name = x.User.Name,
+                ParentKey = new AccountKey(x.User.ParentKey),
+                FullName = x.User.FullName,
                 Email = new EmailAddress(x.User.Email),
+                Phone = x.User.Phone,
+                Password = x.User.Password,
                 Status = Status.Parse(x.AccountUser.Status),
                 IsCreator = x.AccountUser.Creator == "Y"
             })
@@ -145,8 +153,11 @@ public class UserRepository : IUsersRepository
             {
                 UserId = new UserId(u.Id),
                 UserKey = new UserKey(u.Key),
-                Name = u.Name,
+                ParentKey = new AccountKey(u.ParentKey),
+                FullName = u.FullName,
                 Email = new EmailAddress(u.Email),
+                Phone = u.Phone,
+                Password = u.Password,
                 Status = Status.Active
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -164,8 +175,12 @@ public class UserRepository : IUsersRepository
         var user = new User
         {
             Key = command.UserKey.Value,
-            Name = command.Name,
+            ParentKey = command.ParentKey.Value,
+            FullName = command.FullName,
             Email = command.Email.Value,
+            Phone = command.Phone,
+            Password = command.Password ?? string.Empty,
+            Status = "A"
         };
 
         var userAuditRecord = user.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
@@ -194,12 +209,13 @@ public class UserRepository : IUsersRepository
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Key == command.UserKey.Value, cancellationToken);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == command.UserId.Value, cancellationToken);
         if (user == null)
             throw new InvalidOperationException("User not found.");
 
-        user.Name = command.Name;
+        user.FullName = command.FullName;
         user.Email = command.Email.Value;
+        user.Phone = command.Phone;
 
         await _dbContext.AuditRecords.AddAsync(user.ToAuditRecord(currentUserEmail.Value, RecordType.Update), cancellationToken);
     }
@@ -214,17 +230,20 @@ public class UserRepository : IUsersRepository
         if (account == null)
             throw new InvalidOperationException("Account not found.");
 
-        // Pausar la relación AccountUser, no el User directamente
-        var accountUser = await _dbContext.AccountUsers.FirstOrDefaultAsync(au =>
-            au.UserKey == user.Key &&
-            au.AccountKey == account.Key,
-            cancellationToken);
+        // Cambiar estado del usuario a "I" (Inactivo)
+        user.Status = "I";
+        await _dbContext.AuditRecords.AddAsync(user.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
 
-        if (accountUser == null)
-            throw new InvalidOperationException("User does not belong to this account.");
+        // Pausar todas las relaciones AccountUser del usuario
+        var accountUsers = await _dbContext.AccountUsers
+            .Where(au => au.UserKey == user.Key)
+            .ToListAsync(cancellationToken);
 
-        accountUser.Status = "I";
-        await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
+        foreach (var accountUser in accountUsers)
+        {
+            accountUser.Status = "I";
+            await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Pause), cancellationToken);
+        }
     }
 
     public async Task ResumeUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
@@ -237,16 +256,223 @@ public class UserRepository : IUsersRepository
         if (account == null)
             throw new InvalidOperationException("Account not found.");
 
-        // Reactivar la relación AccountUser
-        var accountUser = await _dbContext.AccountUsers.FirstOrDefaultAsync(au =>
-            au.UserKey == user.Key &&
-            au.AccountKey == account.Key,
-            cancellationToken);
+        // Cambiar estado del usuario a "A" (Activo)
+        user.Status = "A";
+        await _dbContext.AuditRecords.AddAsync(user.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
+
+        // Reactivar todas las relaciones AccountUser del usuario
+        var accountUsers = await _dbContext.AccountUsers
+            .Where(au => au.UserKey == user.Key)
+            .ToListAsync(cancellationToken);
+
+        foreach (var accountUser in accountUsers)
+        {
+            accountUser.Status = "A";
+            await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
+        }
+    }
+
+    // Mètodes per compartir usuaris
+
+    public async Task<int> CountUsersToShareAsync(AccountId accountId, string? searchTerm, CancellationToken cancellationToken = default)
+    {
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            return 0;
+
+        // Obtenir tots els usuaris excepte els que ja tenen relació amb aquest compte
+        var usersAlreadyInAccount = _dbContext.AccountUsers
+            .Where(au => au.AccountKey == account.Key)
+            .Select(au => au.UserKey);
+
+        var query = _dbContext.Users
+            .Where(u => !usersAlreadyInAccount.Contains(u.Key));
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Phone.Contains(searchTerm));
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
+    public async Task<IQueryable<UserEntity>> GetUsersToShareAsync(AccountId accountId, string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default)
+    {
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            return Enumerable.Empty<UserEntity>().AsQueryable();
+
+        // Obtenir tots els usuaris excepte els que ja tenen relació amb aquest compte
+        var usersAlreadyInAccount = _dbContext.AccountUsers
+            .Where(au => au.AccountKey == account.Key)
+            .Select(au => au.UserKey)
+            .ToList();
+
+        IQueryable<User> query = _dbContext.Users
+            .Where(u => !usersAlreadyInAccount.Contains(u.Key))
+            .OrderBy(u => u.Id);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Phone.Contains(searchTerm));
+        }
+
+        if (page.HasValue && size.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * size.Value).Take(size.Value);
+        }
+
+        var results = await query
+            .AsNoTracking()
+            .Select(u => new UserEntity
+            {
+                UserId = new UserId(u.Id),
+                UserKey = new UserKey(u.Key),
+                ParentKey = new AccountKey(u.ParentKey),
+                FullName = u.FullName,
+                Email = new EmailAddress(u.Email),
+                Phone = u.Phone,
+                Password = u.Password,
+                Status = Status.Parse(u.Status),
+                IsCreator = false
+            })
+            .ToListAsync(cancellationToken);
+
+        return results.AsQueryable();
+    }
+
+    public async Task<int> CountSharedUsersAsync(AccountId accountId, string? searchTerm, CancellationToken cancellationToken = default)
+    {
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            return 0;
+
+        // Retornar només usuaris compartits (ParentKey diferent del compte actual)
+        var query = from u in _dbContext.Users
+                    join au in _dbContext.AccountUsers on u.Key equals au.UserKey
+                    where au.AccountKey == account.Key && u.ParentKey != account.Key
+                    select u;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                u.Phone.Contains(searchTerm));
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
+    public async Task<IQueryable<UserEntity>> GetSharedUsersAsync(AccountId accountId, string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default)
+    {
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            return Enumerable.Empty<UserEntity>().AsQueryable();
+
+        // Retornar només usuaris compartits (ParentKey diferent del compte actual)
+        var query = from u in _dbContext.Users
+                    join au in _dbContext.AccountUsers on u.Key equals au.UserKey
+                    where au.AccountKey == account.Key && u.ParentKey != account.Key
+                    orderby u.Id
+                    select new { User = u, AccountUser = au };
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(x =>
+                x.User.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+                x.User.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+                x.User.Phone.Contains(searchTerm));
+        }
+
+        if (page.HasValue && size.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * size.Value).Take(size.Value);
+        }
+
+        var results = await query
+            .AsNoTracking()
+            .Select(x => new UserEntity
+            {
+                UserId = new UserId(x.User.Id),
+                UserKey = new UserKey(x.User.Key),
+                ParentKey = new AccountKey(x.User.ParentKey),
+                FullName = x.User.FullName,
+                Email = new EmailAddress(x.User.Email),
+                Phone = x.User.Phone,
+                Password = x.User.Password,
+                Status = Status.Parse(x.AccountUser.Status),
+                IsCreator = x.AccountUser.Creator == "Y"
+            })
+            .ToListAsync(cancellationToken);
+
+        return results.AsQueryable();
+    }
+
+    public async Task ShareUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId.Value, cancellationToken);
+        if (user == null)
+            throw new InvalidOperationException("User not found.");
+
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            throw new InvalidOperationException("Account not found.");
+
+        // Verificar que no existeixi ja la relació
+        var existingRelation = await _dbContext.AccountUsers
+            .AnyAsync(au => au.UserKey == user.Key && au.AccountKey == account.Key, cancellationToken);
+
+        if (existingRelation)
+            throw new InvalidOperationException("User is already shared with this account.");
+
+        // Crear la relació AccountUser
+        var accountUserKey = Guid.NewGuid().ToString();
+        var accountUser = new AccountUser
+        {
+            Key = accountUserKey,
+            AccountKey = account.Key,
+            UserKey = user.Key,
+            Creator = "N",  // No és creador quan es comparteix
+            Status = "A"
+        };
+
+        var accountUserAuditRecord = accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Create);
+
+        await _dbContext.AccountUsers.AddAsync(accountUser, cancellationToken);
+        await _dbContext.AuditRecords.AddAsync(accountUserAuditRecord, cancellationToken);
+    }
+
+    public async Task UnshareUserAsync(UserId userId, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId.Value, cancellationToken);
+        if (user == null)
+            throw new InvalidOperationException("User not found.");
+
+        var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value, cancellationToken);
+        if (account == null)
+            throw new InvalidOperationException("Account not found.");
+
+        // Verificar que l'usuari no sigui el creador del compte
+        var accountUser = await _dbContext.AccountUsers
+            .FirstOrDefaultAsync(au => au.UserKey == user.Key && au.AccountKey == account.Key, cancellationToken);
 
         if (accountUser == null)
-            throw new InvalidOperationException("User does not belong to this account.");
+            throw new InvalidOperationException("User is not shared with this account.");
 
-        accountUser.Status = "A";
-        await _dbContext.AuditRecords.AddAsync(accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Resume), cancellationToken);
+        if (accountUser.Creator == "Y")
+            throw new InvalidOperationException("Cannot unshare the creator of the account.");
+
+        // Eliminar la relació
+        var accountUserAuditRecord = accountUser.ToAuditRecord(currentUserEmail.Value, RecordType.Delete);
+
+        _dbContext.AccountUsers.Remove(accountUser);
+        await _dbContext.AuditRecords.AddAsync(accountUserAuditRecord, cancellationToken);
     }
 }

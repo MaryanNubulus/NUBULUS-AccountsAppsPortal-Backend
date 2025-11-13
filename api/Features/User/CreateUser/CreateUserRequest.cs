@@ -4,16 +4,20 @@ public class CreateUserRequest
 {
     public const string Route = "/api/v1/accounts/{accountId}/users";
     public int AccountId { get; set; }
-    public string Name { get; init; } = string.Empty;
+    public string FullName { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
+    public string Phone { get; init; } = string.Empty;
+    public string? Password { get; init; }
 
     public CreateUserRequest() { }
 
-    private CreateUserRequest(int accountId, string name, string email)
+    private CreateUserRequest(int accountId, string fullName, string email, string phone, string? password = null)
     {
         AccountId = accountId;
-        Name = name;
+        FullName = fullName;
         Email = email;
+        Phone = phone;
+        Password = password;
     }
 
     public Dictionary<string, string[]> Validate()
@@ -24,9 +28,9 @@ public class CreateUserRequest
         if (AccountId <= 0)
             errors["AccountId"] = new[] { "AccountId must be a positive integer." };
 
-        // Validación Name
-        if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2 || Name.Length > 100)
-            errors["Name"] = new[] { "Name must be between 2 and 100 characters." };
+        // Validación FullName
+        if (string.IsNullOrWhiteSpace(FullName) || FullName.Length < 2 || FullName.Length > 100)
+            errors["FullName"] = new[] { "Full name must be between 2 and 100 characters." };
 
         // Validación Email
         if (string.IsNullOrWhiteSpace(Email) || Email.Length < 5 || Email.Length > 100)
@@ -38,11 +42,15 @@ public class CreateUserRequest
                 errors["Email"] = new[] { "Invalid email format." };
         }
 
+        // Validación Phone
+        if (string.IsNullOrWhiteSpace(Phone) || Phone.Length > 15)
+            errors["Phone"] = new[] { "Phone is required and must not exceed 15 characters." };
+
         return errors;
     }
 
-    public static CreateUserRequest Create(int accountId, string name, string email)
+    public static CreateUserRequest Create(int accountId, string fullName, string email, string phone, string? password = null)
     {
-        return new CreateUserRequest(accountId, name, email);
+        return new CreateUserRequest(accountId, fullName, email, phone, password);
     }
 }

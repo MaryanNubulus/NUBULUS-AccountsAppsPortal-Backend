@@ -87,17 +87,18 @@ public class UpdateUserService
                 return UpdateUserResponse.NotFound($"User with ID '{userId}' not found.");
             }
 
-            var duplicateExists = await _unitOfWork.Users.UserInfoExistsAsync(request.Name, request.Email, cancellationToken, userIdValue);
+            var duplicateExists = await _unitOfWork.Users.UserInfoExistsAsync(request.FullName, request.Email, cancellationToken, userIdValue);
 
             if (duplicateExists)
             {
-                return UpdateUserResponse.DataExists("A user with the same Name or Email already exists.");
+                return UpdateUserResponse.DataExists("A user with the same FullName or Email already exists.");
             }
 
             var command = new Domain.Entities.User.UpdateUser(
-                existingUser.UserKey,
-                request.Name,
-                new EmailAddress(request.Email)
+                userIdValue,
+                request.FullName,
+                new EmailAddress(request.Email),
+                request.Phone
             );
 
             await _unitOfWork.Users.UpdateUserAsync(command, new EmailAddress(userContextEmail), cancellationToken);

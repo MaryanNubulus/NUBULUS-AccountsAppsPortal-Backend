@@ -9,8 +9,8 @@ public static class UpdateUserEndPoint
     {
         app.MapPut(UpdateUserRequest.Route, async (
             HttpContext context,
-            int accountId,
-            int userId,
+            [FromRoute] int accountId,
+            [FromRoute] int userId,
             [FromBody] UpdateUserRequest request,
             [FromServices] UpdateUserService service,
             CancellationToken cancellationToken) =>

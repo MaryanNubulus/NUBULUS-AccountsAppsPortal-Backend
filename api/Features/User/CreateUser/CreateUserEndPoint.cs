@@ -9,7 +9,7 @@ public static class CreateUserEndPoint
     {
         app.MapPost(CreateUserRequest.Route, async (
             HttpContext context,
-            int accountId,
+            [FromRoute] int accountId,
             [FromBody] CreateUserRequest request,
             [FromServices] CreateUserService service,
             CancellationToken cancellationToken) =>
