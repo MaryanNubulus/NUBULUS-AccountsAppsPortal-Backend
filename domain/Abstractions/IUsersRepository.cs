@@ -9,7 +9,7 @@ public interface IUsersRepository
     Task<UserEntity> GetUserByIdAsync(UserId userId, AccountId accountId, CancellationToken cancellationToken = default);
     Task<int> CountUsersAsync(AccountId accountId, string? searchTerm, CancellationToken cancellationToken = default);
     Task<IQueryable<UserEntity>> GetUsersAsync(AccountId accountId, string? searchTerm, int? page, int? size, CancellationToken cancellationToken = default);
-    Task<bool> UserInfoExistsAsync(string name, string email, CancellationToken cancellationToken = default, UserId? excludeUserId = null);
+    Task<bool> UserInfoExistsAsync(string name, string email, string phone, CancellationToken cancellationToken = default, UserId? excludeUserId = null);
     Task<bool> UserBelongsToAccountAsync(UserId userId, AccountId accountId, CancellationToken cancellationToken = default);
     Task CreateUserAsync(CreateUser command, AccountId accountId, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);
     Task UpdateUserAsync(UpdateUser command, EmailAddress currentUserEmail, CancellationToken cancellationToken = default);

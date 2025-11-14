@@ -69,11 +69,11 @@ public class CreateUserService
             return CreateUserResponse.NotFound($"Account with ID '{request.AccountId}' not found.");
         }
 
-        var existingUser = await _unitOfWork.Users.UserInfoExistsAsync(request.FullName, request.Email, cancellationToken);
+        var existingUser = await _unitOfWork.Users.UserInfoExistsAsync(request.FullName, request.Email, request.Phone, cancellationToken);
 
         if (existingUser)
         {
-            return CreateUserResponse.DataExists("A user with the same FullName or Email already exists.");
+            return CreateUserResponse.DataExists("A user with the same FullName, Email, or Phone already exists.");
         }
 
         var userKey = Guid.NewGuid().ToString();

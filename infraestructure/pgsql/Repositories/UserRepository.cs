@@ -16,7 +16,7 @@ public class UserRepository : IUsersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<bool> UserInfoExistsAsync(string name, string email, CancellationToken cancellationToken = default, UserId? excludeUserId = null)
+    public async Task<bool> UserInfoExistsAsync(string name, string email, string phone, CancellationToken cancellationToken = default, UserId? excludeUserId = null)
     {
         var nameExists = await _dbContext.Users.AnyAsync(u =>
             u.FullName == name &&
@@ -31,7 +31,14 @@ public class UserRepository : IUsersRepository
             (excludeUserId == null || u.Id != excludeUserId.Value),
             cancellationToken);
 
-        return emailExists;
+        if (emailExists)
+            return true;
+        var phoneExists = await _dbContext.Users.AnyAsync(u =>
+            u.Phone == phone &&
+            (excludeUserId == null || u.Id != excludeUserId.Value),
+            cancellationToken);
+
+        return phoneExists;
     }
 
     public async Task<bool> UserBelongsToAccountAsync(UserId userId, AccountId accountId, CancellationToken cancellationToken = default)
@@ -58,7 +65,7 @@ public class UserRepository : IUsersRepository
 
         var query = from u in _dbContext.Users
                     join au in _dbContext.AccountUsers on u.Key equals au.UserKey
-                    where au.AccountKey == account.Key
+                    where au.AccountKey == account.Key && u.ParentKey == account.Key
                     select u;
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -80,7 +87,7 @@ public class UserRepository : IUsersRepository
 
         var query = from u in _dbContext.Users
                     join au in _dbContext.AccountUsers on u.Key equals au.UserKey
-                    where au.AccountKey == account.Key
+                    where au.AccountKey == account.Key && u.ParentKey == account.Key
                     orderby u.Id
                     select new { User = u, AccountUser = au };
 

@@ -28,12 +28,9 @@ public static class UserMappers
         return new UserInfoDto
         {
             UserId = entity.UserId.Value,
-            UserKey = entity.UserKey.Value,
             FullName = entity.FullName,
             Email = entity.Email.Value,
             Phone = entity.Phone,
-            Status = entity.Status.Value,
-            IsCreator = entity.IsCreator
         };
     }
 
