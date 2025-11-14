@@ -16,11 +16,14 @@ public class PostgreDBContext : DbContext
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new AccountUserConfiguration());
         modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new AppConfiguration());
     }
 
     public DbSet<Account> Accounts { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<AccountUser> AccountUsers { get; set; }
     public DbSet<AuditRecord> AuditRecords { get; set; }
+    public DbSet<App> Apps { get; set; }
+
 
 }

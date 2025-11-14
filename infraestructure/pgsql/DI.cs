@@ -20,6 +20,7 @@ public static class DI
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAccountsRepository, AccountRepository>();
         services.AddScoped<IUsersRepository, UserRepository>();
+        services.AddScoped<IAppsRepository, AppRepository>();
 
         return services;
     }

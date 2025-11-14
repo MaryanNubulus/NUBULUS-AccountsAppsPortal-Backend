@@ -9,6 +9,8 @@ Gestió d'usuaris **dins d'un Account** amb les següents funcionalitats:
 - ✅ Actualitzar informació d'usuaris
 - ✅ Pausar/Reactivar usuaris per Account
 - ✅ Compartir usuaris entre Accounts
+- ✅ Llistar usuaris compartits amb paginació
+- ✅ Llistar usuaris disponibles per compartir amb paginació
 - ✅ Validació en múltiples capes
 - ✅ Auditoria completa
 - ✅ Relació Account-User via taula AccountUsers
@@ -24,10 +26,11 @@ Gestió d'usuaris **dins d'un Account** amb les següents funcionalitats:
 1. [Endpoints](#endpoints)
 2. [Estructura de Dades](#estructura-de-dades)
 3. [Requests i Validacions](#requests-i-validacions)
-4. [Exemples d'Ús](#exemples-dús)
-5. [Errors i Respostes](#errors-i-respostes)
-6. [Relació Account-User](#relació-account-user)
-7. [Compartir Usuaris](#compartir-usuaris-entre-accounts)
+4. [Paginació i Cerca](#paginació-i-cerca)
+5. [Exemples d'Ús](#exemples-dús)
+6. [Errors i Respostes](#errors-i-respostes)
+7. [Relació Account-User](#relació-account-user)
+8. [Compartir Usuaris](#compartir-usuaris-entre-accounts)
 
 ---
 
@@ -39,19 +42,18 @@ Tots els endpoints requereixen **autenticació** (Bearer Token).
 
 **⚠️ Nota**: Totes les rutes inclouen `{accountId}` - els usuaris sempre pertanyen a un Account.
 
-| Mètode | Ruta                                                  | Descripció                                    |
-| ------ | ----------------------------------------------------- | --------------------------------------------- |
-| POST   | `/api/v1/accounts/{accountId}/users`                  | Crear usuari en un Account                    |
-| GET    | `/api/v1/accounts/{accountId}/users`                  | Llistar usuaris d'un Account                  |
-| GET    | `/api/v1/accounts/{accountId}/users/{userId}`         | Obtenir usuari per ID                         |
-| PUT    | `/api/v1/accounts/{accountId}/users/{userId}`         | Actualitzar usuari                            |
-| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/pause`   | Pausar usuari (en tots els Accounts)          |
-| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/resume`  | Reactivar usuari (en tots els Accounts)       |
-| GET    | `/api/v1/accounts/{accountId}/users/to-share`         | Obtenir usuaris disponibles per compartir     |
-| GET    | `/api/v1/accounts/{accountId}/users/shareds`          | Obtenir usuaris compartits amb aquest Account |
-| POST   | `/api/v1/accounts/{accountId}/users/{userId}/share`   | Compartir usuari amb l'Account                |
-| DELETE | `/api/v1/accounts/{accountId}/users/{userId}/unshare` | Deixar de compartir usuari                    |
-| DELETE | `/api/v1/accounts/{accountId}/users/{userId}/unshare` | Deixar de compartir usuari                    |
+| Mètode | Ruta                                                  | Descripció                                    | Paginació |
+| ------ | ----------------------------------------------------- | --------------------------------------------- | --------- |
+| POST   | `/api/v1/accounts/{accountId}/users`                  | Crear usuari en un Account                    | ❌        |
+| GET    | `/api/v1/accounts/{accountId}/users`                  | Llistar usuaris d'un Account                  | ✅        |
+| GET    | `/api/v1/accounts/{accountId}/users/{userId}`         | Obtenir usuari per ID                         | ❌        |
+| PUT    | `/api/v1/accounts/{accountId}/users/{userId}`         | Actualitzar usuari                            | ❌        |
+| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/pause`   | Pausar usuari (en tots els Accounts)          | ❌        |
+| PATCH  | `/api/v1/accounts/{accountId}/users/{userId}/resume`  | Reactivar usuari (en tots els Accounts)       | ❌        |
+| GET    | `/api/v1/accounts/{accountId}/users/to-share`         | Obtenir usuaris disponibles per compartir     | ✅        |
+| GET    | `/api/v1/accounts/{accountId}/users/shareds`          | Obtenir usuaris compartits amb aquest Account | ✅        |
+| POST   | `/api/v1/accounts/{accountId}/users/{userId}/share`   | Compartir usuari amb l'Account                | ❌        |
+| DELETE | `/api/v1/accounts/{accountId}/users/{userId}/unshare` | Deixar de compartir usuari                    | ❌        |
 
 ---
 
@@ -426,6 +428,69 @@ public class PauseResumeUserRequest
 - Si reactives un usuari, **es reactivarà en tots els Accounts on pertany**
 
 **No requereix body**. Només cal fer la petició PATCH a l'endpoint corresponent.
+
+---
+
+## Paginació i Cerca
+
+Els endpoints que retornen llistats d'usuaris (`GetUsers`, `GetUsersToShare`, `GetSharedUsers`) suportant **paginació i cerca**.
+
+### Paràmetres de Query Comuns
+
+| Paràmetre    | Tipus  | Obligatori | Descripció                                           |
+| ------------ | ------ | ---------- | ---------------------------------------------------- |
+| `searchTerm` | string | No         | Filtra per nom complet (`FullName`), email o telèfon |
+| `pageNumber` | int    | No         | Número de pàgina (default: 1)                        |
+| `pageSize`   | int    | No         | Registres per pàgina (default: 10, màxim: 100)       |
+
+### Estructura de Resposta Paginada
+
+Tots els endpoints paginats retornen la següent estructura (`PaginatedResponse<T>`):
+
+```json
+{
+  "totalCount": 250,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "items": [
+    {
+      "userId": 1,
+      "fullName": "Joan Garcia",
+      "email": "joan@example.cat"
+    },
+    {
+      "userId": 2,
+      "fullName": "Maria Lopez",
+      "email": "maria@example.cat"
+    }
+  ]
+}
+```
+
+**Camps de la Resposta**:
+
+| Camp         | Tipus | Descripció                                       |
+| ------------ | ----- | ------------------------------------------------ |
+| `totalCount` | int   | Total de registres que coincideixen amb la cerca |
+| `pageNumber` | int   | Número de pàgina actual                          |
+| `pageSize`   | int   | Registres per pàgina                             |
+| `items`      | array | Array d'items de la pàgina actual                |
+
+### Exemples de Cerca
+
+```bash
+# Llistar usuaris de la pàgina 1 (10 per pàgina)
+GET /api/v1/accounts/1/users?pageNumber=1&pageSize=10
+
+# Buscar usuaris amb "maria" al nom
+GET /api/v1/accounts/1/users?searchTerm=maria&pageNumber=1&pageSize=10
+
+# Obtenir usuaris disponibles per compartir, pàgina 2
+GET /api/v1/accounts/1/users/to-share?pageNumber=2&pageSize=20
+
+# Buscar usuaris compartits amb "joan"
+GET /api/v1/accounts/1/users/shareds?searchTerm=joan&pageNumber=1&pageSize=10
+```
 
 ---
 
@@ -1137,7 +1202,7 @@ Els **Users** són més simples que els **Accounts**:
 
 ---
 
-**Versió**: 1.3  
-**Data**: 13 de Novembre de 2025  
+**Versió**: 1.4  
+**Data**: 14 de Novembre de 2025  
 **Idioma**: Català  
-**Última actualització**: Refactorització: ShareUnshareUser ara segueix el patró PauseResumeUser (dos endpoints en un sol servei)
+**Última actualització**: Paginació en GetUsersToShare i GetSharedUsers. Actualització de taula de endpoints amb columna de paginació. Nova secció: Paginació i Cerca.

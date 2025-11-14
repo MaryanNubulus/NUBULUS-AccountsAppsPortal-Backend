@@ -18,6 +18,9 @@ public class Account
 
     [JsonIgnore]
     public ICollection<AccountUser> AccountUsers { get; set; } = new List<AccountUser>();
+
+    [JsonIgnore]
+    public ICollection<AppAccount> AppAccounts { get; set; } = new List<AppAccount>();
 }
 
 internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
@@ -38,5 +41,13 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(a => a.Address).HasColumnName("address").IsRequired().HasMaxLength(200);
         builder.Property(a => a.NumberId).HasColumnName("number_id").IsRequired().HasMaxLength(50);
         builder.Property(a => a.Status).HasColumnName("status").IsRequired().HasMaxLength(1);
+
+        builder.HasMany(a => a.AccountUsers)
+            .WithOne(au => au.Account)
+            .HasForeignKey(au => au.AccountKey);
+
+        builder.HasMany(a => a.AppAccounts)
+            .WithOne(aa => aa.Account)
+            .HasForeignKey(aa => aa.AccountKey);
     }
 }

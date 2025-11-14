@@ -3,14 +3,14 @@ using Nubulus.Domain.ValueObjects;
 
 namespace Nubulus.Backend.Infraestructure.Pgsql.Mappers;
 
-public static class AccountUserAuditRecord
+public static class AppAuditRecord
 {
-    public static AuditRecord ToAuditRecord(this AccountUser entity, string author, RecordType recordType)
+    public static AuditRecord ToAuditRecord(this App entity, string author, RecordType recordType)
     {
         return new AuditRecord
         {
             Key = Guid.NewGuid().ToString(),
-            TableName = $"{nameof(AccountUser)}s".ToLower(),
+            TableName = $"{nameof(App)}s".ToLower(),
             RecordKey = entity.Key,
             RecordType = recordType.Value,
             User = author,
